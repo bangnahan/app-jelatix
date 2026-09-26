@@ -26,43 +26,91 @@ class TripayService
     }
 
     /**
-     * Dapatkan daftar kanal pembayaran aktif dari Tripay
+     * Dapatkan seluruh daftar kanal pembayaran aktif dari Tripay
      */
     public function getPaymentChannels(): array
     {
-        try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-            ])->timeout(5)->get("{$this->baseUrl}/merchant/payment-channel");
+        // Cache selama 10 menit agar checkout cepat dan tanggap
+        return cache()->remember('tripay_active_payment_channels', 600, function () {
+            try {
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                ])->timeout(4)->get("{$this->baseUrl}/merchant/payment-channel");
 
-            if ($response->successful()) {
-                $data = $response->json('data') ?? [];
-                if (!empty($data)) {
-                    return $data;
+                if ($response->successful()) {
+                    $data = $response->json('data') ?? [];
+                    if (!empty($data) && is_array($data)) {
+                        // Filter hanya channel yang berstatus aktif
+                        $activeChannels = array_filter($data, function ($ch) {
+                            return ($ch['active'] ?? true) === true;
+                        });
+
+                        if (!empty($activeChannels)) {
+                            // Normalisasi nama grup agar konsisten
+                            return array_values(array_map(function ($ch) {
+                                $group = $ch['group'] ?? 'Lainnya';
+                                if (in_array(strtolower($group), ['virtual account', 'va'])) {
+                                    $ch['group'] = 'Virtual Account';
+                                } elseif (in_array(strtolower($group), ['e-wallet', 'ewallet', 'qris'])) {
+                                    $ch['group'] = 'QRIS & E-Wallet';
+                                } elseif (in_array(strtolower($group), ['convenience store', 'retail', 'gerai ritel', 'minimarket'])) {
+                                    $ch['group'] = 'Gerai Ritel (Minimarket)';
+                                } elseif (in_array(strtolower($group), ['paylater', 'cicilan'])) {
+                                    $ch['group'] = 'Paylater';
+                                }
+                                return $ch;
+                            }, $activeChannels));
+                        }
+                    }
                 }
+
+                Log::warning('Tripay getPaymentChannels returned non-success, fallback to default channels: ' . $response->body());
+            } catch (Exception $e) {
+                Log::warning('Tripay getPaymentChannels exception, fallback to default channels: ' . $e->getMessage());
             }
 
-            Log::warning('Tripay getPaymentChannels returned non-success, fallback to default channels: ' . $response->body());
-        } catch (Exception $e) {
-            Log::warning('Tripay getPaymentChannels exception, fallback to default channels: ' . $e->getMessage());
-        }
+            return $this->getDefaultPaymentChannels();
+        });
+    }
 
-        // Seluruh daftar lengkap channel pembayaran Tripay resmi
+    /**
+     * Seluruh katalog resmi kanal pembayaran Tripay Closed Payment (26 Channel Lengkap)
+     */
+    public function getDefaultPaymentChannels(): array
+    {
         return [
-            // --- QRIS & E-Wallet ---
+            // ==========================================
+            // 1. QRIS & DOMPET DIGITAL (E-WALLET)
+            // ==========================================
             [
                 'code' => 'QRIS',
-                'name' => 'QRIS (BCA, Mandiri, GoPay, OVO, Dana, ShopeePay, LinkAja)',
+                'name' => 'QRIS Dinamis (BCA, BRI, Mandiri, BNI, GoPay, OVO, DANA, ShopeePay, LinkAja)',
                 'group' => 'QRIS & E-Wallet',
                 'fee_flat' => 750,
                 'fee_percent' => 0.7,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/qris.png',
+                'color' => '#dc2626',
+                'active' => true,
             ],
             [
                 'code' => 'QRISC',
-                'name' => 'QRIS Customizable (Dinamis)',
+                'name' => 'QRIS Customizable (Real-time Dynamic QR)',
                 'group' => 'QRIS & E-Wallet',
                 'fee_flat' => 750,
                 'fee_percent' => 0.7,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/qris.png',
+                'color' => '#dc2626',
+                'active' => true,
+            ],
+            [
+                'code' => 'QRIS2',
+                'name' => 'QRIS ShopeePay & E-Wallet',
+                'group' => 'QRIS & E-Wallet',
+                'fee_flat' => 750,
+                'fee_percent' => 0.7,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/qris.png',
+                'color' => '#ea580c',
+                'active' => true,
             ],
             [
                 'code' => 'OVO',
@@ -70,13 +118,9 @@ class TripayService
                 'group' => 'QRIS & E-Wallet',
                 'fee_flat' => 0,
                 'fee_percent' => 3.0,
-            ],
-            [
-                'code' => 'SHOPEEPAY',
-                'name' => 'ShopeePay',
-                'group' => 'QRIS & E-Wallet',
-                'fee_flat' => 0,
-                'fee_percent' => 2.0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/ovo.png',
+                'color' => '#4c1d95',
+                'active' => true,
             ],
             [
                 'code' => 'DANA',
@@ -84,15 +128,33 @@ class TripayService
                 'group' => 'QRIS & E-Wallet',
                 'fee_flat' => 0,
                 'fee_percent' => 1.67,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/dana.png',
+                'color' => '#0284c7',
+                'active' => true,
+            ],
+            [
+                'code' => 'SHOPEEPAY',
+                'name' => 'ShopeePay',
+                'group' => 'QRIS & E-Wallet',
+                'fee_flat' => 0,
+                'fee_percent' => 2.0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/shopeepay.png',
+                'color' => '#ea580c',
+                'active' => true,
             ],
 
-            // --- Virtual Account ---
+            // ==========================================
+            // 2. VIRTUAL ACCOUNT (15 BANK NASIONAL & SYARIAH)
+            // ==========================================
             [
                 'code' => 'BCAVA',
                 'name' => 'BCA Virtual Account',
                 'group' => 'Virtual Account',
-                'fee_flat' => 4000,
+                'fee_flat' => 4500,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/bcava.png',
+                'color' => '#005caa',
+                'active' => true,
             ],
             [
                 'code' => 'BRIVA',
@@ -100,6 +162,9 @@ class TripayService
                 'group' => 'Virtual Account',
                 'fee_flat' => 3000,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/bri.png',
+                'color' => '#00529c',
+                'active' => true,
             ],
             [
                 'code' => 'MANDIRIVA',
@@ -107,6 +172,9 @@ class TripayService
                 'group' => 'Virtual Account',
                 'fee_flat' => 3500,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/mandiriva.png',
+                'color' => '#003366',
+                'active' => true,
             ],
             [
                 'code' => 'BNIVA',
@@ -114,6 +182,9 @@ class TripayService
                 'group' => 'Virtual Account',
                 'fee_flat' => 3000,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/bniva.png',
+                'color' => '#f15a24',
+                'active' => true,
             ],
             [
                 'code' => 'PERMATAVA',
@@ -121,6 +192,9 @@ class TripayService
                 'group' => 'Virtual Account',
                 'fee_flat' => 3000,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/permatava.png',
+                'color' => '#65b32e',
+                'active' => true,
             ],
             [
                 'code' => 'CIMBVA',
@@ -128,6 +202,9 @@ class TripayService
                 'group' => 'Virtual Account',
                 'fee_flat' => 3000,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/cimbva.png',
+                'color' => '#7e1112',
+                'active' => true,
             ],
             [
                 'code' => 'BSIVA',
@@ -135,6 +212,9 @@ class TripayService
                 'group' => 'Virtual Account',
                 'fee_flat' => 3000,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/bsiva.png',
+                'color' => '#00a39d',
+                'active' => true,
             ],
             [
                 'code' => 'DANAMONVA',
@@ -142,13 +222,19 @@ class TripayService
                 'group' => 'Virtual Account',
                 'fee_flat' => 3000,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/danamonva.png',
+                'color' => '#f58220',
+                'active' => true,
             ],
             [
                 'code' => 'MUAMALATVA',
-                'name' => 'Muamalat Virtual Account',
+                'name' => 'Bank Muamalat Virtual Account',
                 'group' => 'Virtual Account',
                 'fee_flat' => 3000,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/muamalatva.png',
+                'color' => '#5e2750',
+                'active' => true,
             ],
             [
                 'code' => 'SINARMASVA',
@@ -156,15 +242,73 @@ class TripayService
                 'group' => 'Virtual Account',
                 'fee_flat' => 3000,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/sinarmasva.png',
+                'color' => '#d71920',
+                'active' => true,
+            ],
+            [
+                'code' => 'BSSVA',
+                'name' => 'Bank Sahabat Sampoerna Virtual Account',
+                'group' => 'Virtual Account',
+                'fee_flat' => 3000,
+                'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/bssva.png',
+                'color' => '#00843d',
+                'active' => true,
+            ],
+            [
+                'code' => 'BNCVA',
+                'name' => 'Bank Neo Commerce (BNC) Virtual Account',
+                'group' => 'Virtual Account',
+                'fee_flat' => 3000,
+                'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/bncva.png',
+                'color' => '#ffcc00',
+                'active' => true,
+            ],
+            [
+                'code' => 'OCBCVA',
+                'name' => 'OCBC NISP Virtual Account',
+                'group' => 'Virtual Account',
+                'fee_flat' => 3000,
+                'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/ocbcva.png',
+                'color' => '#ee2e24',
+                'active' => true,
+            ],
+            [
+                'code' => 'MYBVA',
+                'name' => 'Maybank Virtual Account',
+                'group' => 'Virtual Account',
+                'fee_flat' => 3000,
+                'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/mybva.png',
+                'color' => '#ffc400',
+                'active' => true,
+            ],
+            [
+                'code' => 'BJBVA',
+                'name' => 'Bank BJB Virtual Account',
+                'group' => 'Virtual Account',
+                'fee_flat' => 3000,
+                'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/bjbva.png',
+                'color' => '#0066b2',
+                'active' => true,
             ],
 
-            // --- Convenience Store (Gerai Ritel) ---
+            // ==========================================
+            // 3. GERAI RITEL (MINIMARKET CONVENIENCE STORE)
+            // ==========================================
             [
                 'code' => 'ALFAMART',
                 'name' => 'Alfamart / Alfamidi / Dan+Dan',
                 'group' => 'Gerai Ritel (Minimarket)',
                 'fee_flat' => 3500,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/alfamart.png',
+                'color' => '#d71920',
+                'active' => true,
             ],
             [
                 'code' => 'INDOMARET',
@@ -172,15 +316,33 @@ class TripayService
                 'group' => 'Gerai Ritel (Minimarket)',
                 'fee_flat' => 3500,
                 'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/indomaret.png',
+                'color' => '#00529c',
+                'active' => true,
+            ],
+            [
+                'code' => 'ALFAMIDI',
+                'name' => 'Alfamidi',
+                'group' => 'Gerai Ritel (Minimarket)',
+                'fee_flat' => 3500,
+                'fee_percent' => 0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/alfamidi.png',
+                'color' => '#ed1c24',
+                'active' => true,
             ],
 
-            // --- Paylater ---
+            // ==========================================
+            // 4. PAYLATER (CICILAN ONLINE)
+            // ==========================================
             [
                 'code' => 'KREDIVO',
-                'name' => 'Kredivo (Cicilan 30 Hari / 3-12 Bulan)',
+                'name' => 'Kredivo (Cicilan 30 Hari / 3 - 12 Bulan)',
                 'group' => 'Paylater',
                 'fee_flat' => 1000,
                 'fee_percent' => 2.3,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/kredivo.png',
+                'color' => '#00afef',
+                'active' => true,
             ],
             [
                 'code' => 'AKULAKU',
@@ -188,6 +350,9 @@ class TripayService
                 'group' => 'Paylater',
                 'fee_flat' => 1000,
                 'fee_percent' => 2.0,
+                'icon_url' => 'https://tripay.co.id/images/payment-channel/akulaku.png',
+                'color' => '#e60012',
+                'active' => true,
             ],
         ];
     }
@@ -264,9 +429,44 @@ class TripayService
         }
 
         // Sandbox fallback agar flow pendaftaran & checkout bisa diuji lokal secara mulus
-        $isQris = $paymentMethod === 'QRIS';
-        $mockPayCode = $isQris ? null : '88390' . rand(10000000, 99999999);
-        $mockQrUrl = $isQris ? 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=00020101021226590014ID.LINKAJA.WWW011893600911002227142702150000000000000000303UMI51440014ID.DANA.WWW0118936009153022271427021500000000000000005204549953033605802ID5914JELATIX%20RUN6007JAKARTA61051219062070703A016304' : null;
+        $isQris = str_starts_with($paymentMethod, 'QRIS');
+        $isRetail = in_array($paymentMethod, ['ALFAMART', 'INDOMARET', 'ALFAMIDI']);
+        $isEwallet = in_array($paymentMethod, ['OVO', 'DANA', 'SHOPEEPAY']);
+        $isPaylater = in_array($paymentMethod, ['KREDIVO', 'AKULAKU']);
+
+        $mockPayCode = null;
+        $mockQrUrl = null;
+        $mockCheckoutUrl = url("/orders/{$order->order_code}");
+
+        if ($isQris) {
+            $mockQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=00020101021226590014ID.LINKAJA.WWW011893600911002227142702150000000000000000303UMI51440014ID.DANA.WWW0118936009153022271427021500000000000000005204549953033605802ID5914JELATIX%20RUN6007JAKARTA61051219062070703A016304';
+        } elseif ($isRetail) {
+            $mockPayCode = 'TRP-' . rand(10000000, 99999999);
+        } elseif ($isEwallet || $isPaylater) {
+            $mockPayCode = '0812' . rand(10000000, 99999999);
+        } else {
+            // Virtual Account Prefix
+            $bankPrefix = match($paymentMethod) {
+                'BCAVA' => '88390',
+                'BRIVA' => '12800',
+                'BNIVA' => '98800',
+                'MANDIRIVA' => '89608',
+                'PERMATAVA' => '85280',
+                'CIMBVA' => '59190',
+                'BSIVA' => '90000',
+                'DANAMONVA' => '88560',
+                'MUAMALATVA' => '84830',
+                'SINARMASVA', 'SMSVA' => '82140',
+                'BSSVA' => '85500',
+                'BNCVA' => '89800',
+                'OCBCVA' => '88010',
+                'MYBVA' => '78100',
+                'BJBVA' => '83400',
+                default => '88888',
+            };
+            $mockPayCode = $bankPrefix . rand(10000000, 99999999);
+        }
+
         $mockRef = 'TP-SB-' . rand(100000, 999999);
 
         $order->update([
@@ -274,7 +474,7 @@ class TripayService
             'tripay_payment_method' => $paymentMethod,
             'tripay_pay_code' => $mockPayCode,
             'tripay_qr_url' => $mockQrUrl,
-            'tripay_checkout_url' => url("/orders/{$order->order_code}"),
+            'tripay_checkout_url' => $mockCheckoutUrl,
             'expired_at' => now()->addMinutes($this->expiryMinutes),
         ]);
 
@@ -282,7 +482,7 @@ class TripayService
             'reference' => $mockRef,
             'pay_code' => $mockPayCode,
             'qr_url' => $mockQrUrl,
-            'checkout_url' => $order->tripay_checkout_url,
+            'checkout_url' => $mockCheckoutUrl,
             'expired_time' => $order->expired_at->timestamp,
         ];
     }

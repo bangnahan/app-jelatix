@@ -101,26 +101,60 @@
                     <span class="text-xs text-slate-400">Metode: <strong class="text-white">{{ $order->tripay_payment_method }}</strong></span>
                 </div>
 
-                <!-- Payment Details Card (QRIS vs VA) -->
-                @if($order->tripay_payment_method === 'QRIS' && $order->tripay_qr_url)
-                    <div class="bg-white rounded-2xl p-6 text-slate-950 text-center mb-6">
+                <!-- Payment Details Card (QRIS vs VA vs Minimarket vs E-Wallet/Paylater) -->
+                @if(str_starts_with($order->tripay_payment_method, 'QRIS') && $order->tripay_qr_url)
+                    <div class="bg-white rounded-2xl p-6 text-slate-950 text-center mb-6 shadow-xl">
                         <img src="{{ $order->tripay_qr_url }}" alt="QRIS Code" class="w-64 h-64 mx-auto rounded-lg mb-2">
-                        <p class="text-xs text-slate-600 font-semibold">
-                            Scan kode QRIS di atas menggunakan BCA Mobile, GoPay, OVO, Dana, ShopeePay, atau Livin Mandiri.
+                        <p class="text-xs text-slate-600 font-semibold mb-2">
+                            Scan kode QRIS di atas menggunakan BCA Mobile, BRImo, Livin Mandiri, GoPay, OVO, DANA, ShopeePay, atau LinkAja.
                         </p>
+                        <a href="{{ $order->tripay_qr_url }}" target="_blank" download="QRIS-{{ $order->order_code }}.png" class="inline-block text-[11px] text-sky-600 hover:text-sky-700 font-bold underline">
+                            Buka Gambar QR Ukuran Penuh
+                        </a>
                     </div>
                 @elseif($order->tripay_pay_code)
+                    @php
+                        $isRetail = in_array($order->tripay_payment_method, ['ALFAMART', 'INDOMARET', 'ALFAMIDI']);
+                        $isEwallet = in_array($order->tripay_payment_method, ['OVO', 'DANA', 'SHOPEEPAY']);
+                        $isPaylater = in_array($order->tripay_payment_method, ['KREDIVO', 'AKULAKU']);
+                    @endphp
                     <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 text-center mb-6">
-                        <span class="text-xs text-slate-400 uppercase tracking-wider block">Nomor Virtual Account</span>
+                        <span class="text-xs text-slate-400 uppercase tracking-wider block">
+                            @if($isRetail)
+                                Kode Pembayaran Kasir ({{ $order->tripay_payment_method }})
+                            @elseif($isEwallet)
+                                Nomor Akun / Tagihan ({{ $order->tripay_payment_method }})
+                            @elseif($isPaylater)
+                                Kode Referensi Pembayaran ({{ $order->tripay_payment_method }})
+                            @else
+                                Nomor Virtual Account ({{ $order->tripay_payment_method }})
+                            @endif
+                        </span>
                         <div class="text-2xl sm:text-3xl font-black text-white font-mono my-2 flex items-center justify-center gap-3">
                             <span id="vaCode">{{ $order->tripay_pay_code }}</span>
-                            <button type="button" onclick="navigator.clipboard.writeText('{{ $order->tripay_pay_code }}'); alert('Nomor VA berhasil disalin!')" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs text-sky-300 cursor-pointer">
+                            <button type="button" onclick="navigator.clipboard.writeText('{{ $order->tripay_pay_code }}'); alert('Kode pembayaran berhasil disalin!')" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs text-sky-300 cursor-pointer">
                                 Salin
                             </button>
                         </div>
                         <p class="text-xs text-slate-400">
-                            Transfer sesuai nominal persis ke nomor Virtual Account di atas.
+                            @if($isRetail)
+                                Sebutkan pembayaran "Tripay" kepada kasir minimarket dan tunjukkan kode pembayaran di atas.
+                            @elseif($isEwallet)
+                                Silakan buka aplikasi {{ $order->tripay_payment_method }} untuk menyelesaikan konfirmasi pembayaran.
+                            @elseif($isPaylater)
+                                Selesaikan pembayaran cicilan melalui aplikasi {{ $order->tripay_payment_method }} Anda.
+                            @else
+                                Transfer sesuai nominal persis ke nomor Virtual Account di atas sebelum batas waktu berakhir.
+                            @endif
                         </p>
+                    </div>
+                @endif
+
+                @if($order->tripay_checkout_url && $order->tripay_checkout_url !== url("/orders/{$order->order_code}"))
+                    <div class="mb-6">
+                        <a href="{{ $order->tripay_checkout_url }}" target="_blank" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-slate-950 font-bold py-3.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                            Lanjutkan Pembayaran di {{ $order->tripay_payment_method }} &rarr;
+                        </a>
                     </div>
                 @endif
 

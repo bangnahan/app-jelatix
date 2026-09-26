@@ -392,46 +392,131 @@
 
             <!-- 6. Metode Pembayaran Tripay Lengkap -->
             <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
-                <h2 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">6</span>
-                    Metode Pembayaran (Tripay Multi-Channel)
-                </h2>
-                <p class="text-xs text-slate-400 mb-6">Pilih salah satu metode pembayaran otomatis yang Anda inginkan.</p>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">6</span>
+                            Metode Pembayaran (Tripay Multi-Channel)
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Seluruh channel resmi Tripay tersedia. Pilih channel yang paling nyaman untuk Anda.</p>
+                    </div>
+                    <span class="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full w-fit">
+                        {{ count($paymentChannels) }} Channel Aktif
+                    </span>
+                </div>
 
                 @php
                     $groupedChannels = collect($paymentChannels)->groupBy('group');
                 @endphp
 
-                <div class="space-y-6">
+                <!-- Filter Kategori & Pencarian Cepat -->
+                <div class="space-y-3 mb-6">
+                    <!-- Search Input -->
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="paymentChannelSearch" 
+                            placeholder="Cari bank atau metode (contoh: BCA, Mandiri, BRI, QRIS, Dana, Alfamart...)" 
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition"
+                        >
+                    </div>
+
+                    <!-- Category Tabs -->
+                    <div class="flex flex-wrap gap-2 pt-1" id="categoryTabContainer">
+                        <button 
+                            type="button" 
+                            data-tab="all" 
+                            class="cat-tab-btn active-tab px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20"
+                        >
+                            Semua ({{ count($paymentChannels) }})
+                        </button>
+                        @foreach($groupedChannels as $groupName => $channels)
+                            <button 
+                                type="button" 
+                                data-tab="{{ Str::slug($groupName) }}" 
+                                class="cat-tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 transition cursor-pointer"
+                            >
+                                {{ $groupName }} ({{ count($channels) }})
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Channel Cards Container -->
+                <div class="space-y-6" id="channelsContainer">
                     @foreach($groupedChannels as $groupName => $channels)
-                        <div>
+                        <div class="channel-group-block" data-group-slug="{{ Str::slug($groupName) }}">
                             <div class="text-xs font-extrabold uppercase tracking-wider text-sky-400 mb-2.5 flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-sky-400"></span>
                                 {{ $groupName }}
                                 <span class="text-[10px] text-slate-500 font-normal">({{ count($channels) }} pilihan)</span>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 @foreach($channels as $ch)
-                                    <label class="border-2 border-slate-700/80 hover:border-sky-500 rounded-xl p-3 flex items-center justify-between cursor-pointer transition bg-slate-800/40 has-[:checked]:border-sky-500 has-[:checked]:bg-sky-500/10">
-                                        <div class="flex items-center gap-3">
+                                    @php
+                                        $initials = strtoupper(substr($ch['code'], 0, 3));
+                                        $accentColor = $ch['color'] ?? '#0284c7';
+                                    @endphp
+                                    <label 
+                                        class="payment-channel-card border-2 border-slate-800/90 hover:border-slate-600 rounded-xl p-3 sm:p-3.5 flex items-center justify-between cursor-pointer transition bg-slate-800/30 has-[:checked]:border-sky-500 has-[:checked]:bg-sky-500/10 has-[:checked]:shadow-lg has-[:checked]:shadow-sky-500/10"
+                                        data-name="{{ strtolower($ch['name']) }}"
+                                        data-code="{{ strtolower($ch['code']) }}"
+                                        data-channel-name="{{ $ch['name'] }}"
+                                    >
+                                        <div class="flex items-center gap-3 min-w-0">
                                             <input 
                                                 type="radio" 
                                                 name="payment_method" 
                                                 value="{{ $ch['code'] }}" 
                                                 required 
                                                 {{ $loop->parent->first && $loop->first ? 'checked' : '' }}
-                                                class="text-sky-500 focus:ring-sky-500"
+                                                class="channel-radio text-sky-500 focus:ring-sky-500 w-4 h-4 shrink-0"
+                                                data-channel-name="{{ $ch['name'] }}"
                                             >
-                                            <div>
-                                                <span class="font-bold text-white text-xs sm:text-sm block">{{ $ch['name'] }}</span>
-                                                <span class="text-[10px] text-slate-400">Kode: <strong class="text-sky-300 font-mono">{{ $ch['code'] }}</strong></span>
+                                            
+                                            <!-- Channel Logo / Badge -->
+                                            <div class="w-10 h-10 rounded-lg bg-slate-900 border border-slate-700/80 flex items-center justify-center shrink-0 overflow-hidden p-1">
+                                                @if(!empty($ch['icon_url']))
+                                                    <img 
+                                                        src="{{ $ch['icon_url'] }}" 
+                                                        alt="{{ $ch['name'] }}" 
+                                                        class="w-full h-full object-contain"
+                                                        onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+                                                    >
+                                                    <span class="hidden text-[10px] font-black font-mono text-sky-300" style="color: {{ $accentColor }}">{{ $initials }}</span>
+                                                @else
+                                                    <span class="text-[10px] font-black font-mono" style="color: {{ $accentColor }}">{{ $initials }}</span>
+                                                @endif
                                             </div>
+
+                                            <div class="min-w-0">
+                                                <span class="font-bold text-white text-xs sm:text-sm block truncate" title="{{ $ch['name'] }}">{{ $ch['name'] }}</span>
+                                                <div class="flex items-center gap-2 mt-0.5">
+                                                    <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-900 text-sky-300 border border-slate-700">
+                                                        {{ $ch['code'] }}
+                                                    </span>
+                                                    <span class="text-[10px] text-slate-400">Verifikasi Otomatis</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="shrink-0 text-right pl-2 hidden xs:block">
+                                            <span class="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                                                Instan
+                                            </span>
                                         </div>
                                     </label>
                                 @endforeach
                             </div>
                         </div>
                     @endforeach
+                </div>
+
+                <div id="noChannelMatch" class="hidden text-center py-8 text-slate-400 text-xs">
+                    Tidak ada metode pembayaran yang cocok dengan kata kunci pencarian Anda.
                 </div>
             </section>
 
@@ -458,7 +543,13 @@
                     <div id="grandTotalDisplay" class="text-3xl font-black text-sky-400 font-mono">
                         Rp 0
                     </div>
-                    <span class="text-[11px] text-slate-500">Sudah termasuk biaya layanan platform Rp 5.000</span>
+                    <div class="flex items-center gap-2 mt-1.5">
+                        <span class="text-[11px] text-slate-400">Metode:</span>
+                        <span id="selectedMethodBadge" class="text-[11px] font-bold text-sky-300 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/30 font-mono">
+                            QRIS Dinamis (QRIS)
+                        </span>
+                    </div>
+                    <span class="text-[10px] text-slate-500 block mt-1">Sudah termasuk biaya layanan platform Rp 5.000</span>
                 </div>
 
                 <button 
@@ -505,13 +596,15 @@
         </div>
     </div>
 
-    <!-- Live BIB Script & Total Calculator -->
+    <!-- Scripts: Live BIB, Total Calculator, Channel Search & Category Filtering -->
     <script>
         const fullNameInput = document.getElementById('fullNameInput');
         const bibNameInput = document.getElementById('bibNameInput');
         const bibNamePreview = document.getElementById('bibNamePreview');
         const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+        const selectedMethodBadge = document.getElementById('selectedMethodBadge');
 
+        // BIB Name live preview
         function updateBibPreview() {
             const val = bibNameInput.value.trim() || fullNameInput.value.trim() || 'NAMA ANDA';
             bibNamePreview.innerText = val.toUpperCase();
@@ -522,6 +615,7 @@
         });
         bibNameInput.addEventListener('input', updateBibPreview);
 
+        // Price calculator
         function updateTotal() {
             const checkedCat = document.querySelector('input[name="category_id"]:checked');
             if (checkedCat) {
@@ -535,7 +629,89 @@
             radio.addEventListener('change', updateTotal);
         });
 
+        // Payment Method selection badge update
+        function updateSelectedMethodBadge() {
+            const checkedChannel = document.querySelector('input[name="payment_method"]:checked');
+            if (checkedChannel) {
+                const card = checkedChannel.closest('.payment-channel-card');
+                const name = card ? card.getAttribute('data-channel-name') : checkedChannel.value;
+                selectedMethodBadge.innerText = `${name} (${checkedChannel.value})`;
+            }
+        }
+
+        document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+            radio.addEventListener('change', updateSelectedMethodBadge);
+        });
+
+        // Interactive Filter by Category Tab & Search Input
+        const searchInput = document.getElementById('paymentChannelSearch');
+        const tabBtns = document.querySelectorAll('.cat-tab-btn');
+        const groupBlocks = document.querySelectorAll('.channel-group-block');
+        const channelCards = document.querySelectorAll('.payment-channel-card');
+        const noMatchEl = document.getElementById('noChannelMatch');
+
+        let currentActiveTab = 'all';
+
+        function filterPaymentChannels() {
+            const query = (searchInput.value || '').trim().toLowerCase();
+            let totalVisible = 0;
+
+            groupBlocks.forEach(group => {
+                const groupSlug = group.getAttribute('data-group-slug');
+                const isTabMatch = (currentActiveTab === 'all' || currentActiveTab === groupSlug);
+
+                let visibleInGroup = 0;
+                const cardsInGroup = group.querySelectorAll('.payment-channel-card');
+
+                cardsInGroup.forEach(card => {
+                    const name = card.getAttribute('data-name') || '';
+                    const code = card.getAttribute('data-code') || '';
+                    const isSearchMatch = !query || name.includes(query) || code.includes(query);
+
+                    if (isTabMatch && isSearchMatch) {
+                        card.classList.remove('hidden');
+                        visibleInGroup++;
+                        totalVisible++;
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+
+                if (visibleInGroup > 0) {
+                    group.classList.remove('hidden');
+                } else {
+                    group.classList.add('hidden');
+                }
+            });
+
+            if (totalVisible === 0) {
+                noMatchEl.classList.remove('hidden');
+            } else {
+                noMatchEl.classList.add('hidden');
+            }
+        }
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => {
+                    b.classList.remove('bg-sky-500', 'text-slate-950', 'shadow-md', 'shadow-sky-500/20', 'font-bold');
+                    b.classList.add('text-slate-300', 'bg-slate-800/80', 'font-semibold');
+                });
+                btn.classList.add('bg-sky-500', 'text-slate-950', 'shadow-md', 'shadow-sky-500/20', 'font-bold');
+                btn.classList.remove('text-slate-300', 'bg-slate-800/80', 'font-semibold');
+
+                currentActiveTab = btn.getAttribute('data-tab');
+                filterPaymentChannels();
+            });
+        });
+
+        if (searchInput) {
+            searchInput.addEventListener('input', filterPaymentChannels);
+        }
+
+        // Initialize defaults
         updateTotal();
+        updateSelectedMethodBadge();
     </script>
 </body>
 </html>
