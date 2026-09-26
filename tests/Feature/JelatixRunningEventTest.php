@@ -488,6 +488,29 @@ class JelatixRunningEventTest extends TestCase
                 && $request['attach1'] === 'https://jelatix.com/ticket/download';
         });
     }
+
+    public function test_auto_deploy_webhook_rejects_unauthorized_requests(): void
+    {
+        $response = $this->postJson('/api/deploy', [
+            'ref' => 'refs/heads/main',
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_auto_deploy_webhook_accepts_valid_secret(): void
+    {
+        $response = $this->postJson('/api/deploy?secret=jelatix_auto_deploy_secret_2026', [
+            'ref' => 'refs/heads/feature-branch',
+        ]);
+
+        // Branch non-main is ignored gracefully
+        $response->assertStatus(200);
+        $response->assertJson([
+            'status' => 'ignored',
+        ]);
+    }
 }
+
 
 
