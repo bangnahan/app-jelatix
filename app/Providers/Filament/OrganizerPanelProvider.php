@@ -25,6 +25,7 @@ class OrganizerPanelProvider extends PanelProvider
         return $panel
             ->id('organizer')
             ->path('organizer')
+            ->login()
             ->colors([
                 'primary' => Color::Amber,
             ])
