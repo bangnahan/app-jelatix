@@ -149,7 +149,7 @@ class ParticipantResource extends Resource
                 Tables\Columns\TextColumn::make('bib_name')
                     ->label('Nama di BIB')
                     ->searchable()
-                    ->uppercase(),
+                    ->formatStateUsing(fn ($state) => strtoupper((string) $state)),
 
                 Tables\Columns\TextColumn::make('full_name')
                     ->label('Nama Lengkap')
