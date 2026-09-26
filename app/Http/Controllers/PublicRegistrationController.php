@@ -58,7 +58,7 @@ class PublicRegistrationController extends Controller
                 'participants.*.category_id' => 'required|exists:event_categories,id',
                 'participants.*.jersey_size_id' => 'required|exists:jersey_sizes,id',
                 'participants.*.full_name' => 'required|string|max:100',
-                'participants.*.bib_name' => 'nullable|string|max:14',
+                'participants.*.bib_name' => 'nullable|string|max:30',
                 'participants.*.id_type' => 'required|in:KTP,SIM,Passport,KIA',
                 'participants.*.id_number' => 'required|string|max:30',
                 'participants.*.gender' => 'required|in:male,female',
@@ -70,7 +70,7 @@ class PublicRegistrationController extends Controller
                 'participants.*.emergency_contact_phone' => 'required|string|max:20',
                 'participants.*.emergency_contact_relation' => 'required|string|max:50',
                 'participants.*.medical_conditions' => 'nullable|string',
-                'participants.*.estimated_finish_time' => 'nullable|string',
+                'participants.*.estimated_finish_time' => 'nullable|string|max:50',
                 'participants.*.custom_fields' => 'nullable|array',
             ]);
 
@@ -84,7 +84,7 @@ class PublicRegistrationController extends Controller
                 'category_id' => 'required|exists:event_categories,id',
                 'jersey_size_id' => 'required|exists:jersey_sizes,id',
                 'full_name' => 'required|string|max:100',
-                'bib_name' => 'nullable|string|max:14',
+                'bib_name' => 'nullable|string|max:30',
                 'id_type' => 'required|in:KTP,SIM,Passport,KIA',
                 'id_number' => 'required|string|max:30',
                 'gender' => 'required|in:male,female',
@@ -98,7 +98,7 @@ class PublicRegistrationController extends Controller
                 'payment_method' => 'required|string',
                 'waiver_accepted' => 'accepted',
                 'medical_conditions' => 'nullable|string',
-                'estimated_finish_time' => 'nullable|string',
+                'estimated_finish_time' => 'nullable|string|max:50',
                 'custom_fields' => 'nullable|array',
             ]);
 
@@ -208,12 +208,16 @@ class PublicRegistrationController extends Controller
 
                 // 4. Buat data Participant per pelari
                 foreach ($participantsData as $pData) {
+                    $rawBib = !empty($pData['bib_name']) ? trim($pData['bib_name']) : trim($pData['full_name']);
+                    $safeBibName = mb_substr(strtoupper($rawBib), 0, 40);
+                    $safeFinishTime = !empty($pData['estimated_finish_time']) ? mb_substr(trim($pData['estimated_finish_time']), 0, 45) : null;
+
                     Participant::create([
                         'order_id' => $order->id,
                         'event_category_id' => (int) $pData['category_id'],
                         'jersey_size_id' => (int) $pData['jersey_size_id'],
                         'full_name' => $pData['full_name'],
-                        'bib_name' => strtoupper($pData['bib_name'] ?: $pData['full_name']),
+                        'bib_name' => $safeBibName,
                         'id_type' => $pData['id_type'],
                         'id_number' => $pData['id_number'],
                         'gender' => $pData['gender'],
@@ -225,7 +229,7 @@ class PublicRegistrationController extends Controller
                         'emergency_contact_phone' => $pData['emergency_contact_phone'],
                         'emergency_contact_relation' => $pData['emergency_contact_relation'],
                         'medical_conditions' => $pData['medical_conditions'] ?? null,
-                        'estimated_finish_time' => $pData['estimated_finish_time'] ?? null,
+                        'estimated_finish_time' => $safeFinishTime,
                         'custom_fields_data' => $pData['custom_fields'] ?? null,
                         'waiver_accepted' => true,
                         'waiver_accepted_at' => now(),

@@ -22,7 +22,7 @@ return new class extends Migration
             
             // Identitas Pelari
             $table->string('full_name');
-            $table->string('bib_name', 16)->nullable(); // Nama yang dicetak di nomor dada
+            $table->string('bib_name', 50)->nullable(); // Nama yang dicetak di nomor dada
             $table->string('id_type', 20)->default('KTP'); // KTP, SIM, Passport, KIA
             $table->string('id_number');
             $table->string('gender', 10); // male, female
@@ -39,7 +39,7 @@ return new class extends Migration
             
             // Wave & Target Pace
             $table->string('wave_group', 20)->nullable(); // Wave A, Wave B, Wave C
-            $table->string('estimated_finish_time', 20)->nullable(); // e.g. 00:45:00
+            $table->string('estimated_finish_time', 50)->nullable(); // e.g. 00:45:00
             
             // Dynamic Custom Form Data
             $table->json('custom_fields_data')->nullable();

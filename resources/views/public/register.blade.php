@@ -561,12 +561,12 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Nama di BIB Dada (Max 14 Karakter)</label>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Nama di BIB Dada (Opsional, Max 25 Karakter)</label>
                             <input 
                                 type="text" 
                                 name="participants[${index}][bib_name]" 
                                 id="bibName_${index}" 
-                                maxlength="14" 
+                                maxlength="25" 
                                 placeholder="BUDI P (opsional)"
                                 class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 uppercase"
                             >
