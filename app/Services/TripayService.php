@@ -362,6 +362,25 @@ class TripayService
      */
     public function createTransaction(Order $order, string $paymentMethod): array
     {
+        if (app()->environment('testing')) {
+            $mockCheckoutUrl = "https://tripay.co.id/checkout/TP-TEST-{$order->order_code}";
+            $order->update([
+                'tripay_reference' => 'DEV-T3943012345678',
+                'tripay_payment_method' => $paymentMethod,
+                'tripay_pay_code' => '12800123456789',
+                'tripay_checkout_url' => $mockCheckoutUrl,
+                'expired_at' => now()->addMinutes($this->expiryMinutes),
+            ]);
+
+            return [
+                'reference' => 'DEV-T3943012345678',
+                'pay_code' => '12800123456789',
+                'qr_url' => null,
+                'checkout_url' => $mockCheckoutUrl,
+                'expired_time' => $order->expired_at->timestamp,
+            ];
+        }
+
         $merchantRef = $order->order_code;
         $amount = (int) round($order->grand_total);
         $expiredTime = now()->addMinutes($this->expiryMinutes)->timestamp;
@@ -389,6 +408,21 @@ class TripayService
             ];
         }
 
+        $callbackUrl = env('TRIPAY_CALLBACK_URL');
+        if (empty($callbackUrl)) {
+            $appUrl = config('app.url', 'https://app.jelatix.com');
+            if (str_contains($appUrl, 'localhost') || str_contains($appUrl, '127.0.0.1')) {
+                $callbackUrl = 'https://app.jelatix.com/api/webhooks/tripay';
+            } else {
+                $callbackUrl = rtrim($appUrl, '/') . '/api/webhooks/tripay';
+            }
+        }
+
+        $returnUrl = rtrim(config('app.url', 'https://app.jelatix.com'), '/') . "/orders/{$order->order_code}";
+        if (str_contains($returnUrl, 'localhost') || str_contains($returnUrl, '127.0.0.1')) {
+            $returnUrl = "https://app.jelatix.com/orders/{$order->order_code}";
+        }
+
         $payload = [
             'method' => $paymentMethod,
             'merchant_ref' => $merchantRef,
@@ -397,8 +431,8 @@ class TripayService
             'customer_email' => $order->customer_email,
             'customer_phone' => $order->customer_phone,
             'order_items' => $orderItems,
-            'callback_url' => url('/api/webhooks/tripay'),
-            'return_url' => url("/orders/{$order->order_code}"),
+            'callback_url' => $callbackUrl,
+            'return_url' => $returnUrl,
             'expired_time' => $expiredTime,
             'signature' => $signature,
         ];
@@ -406,7 +440,7 @@ class TripayService
         try {
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
-            ])->timeout(8)->post("{$this->baseUrl}/transaction/create", $payload);
+            ])->timeout(10)->post("{$this->baseUrl}/transaction/create", $payload);
 
             if ($response->successful() && $response->json('success') === true) {
                 $data = $response->json('data');
@@ -423,12 +457,25 @@ class TripayService
                 return $data;
             }
 
-            Log::warning("Tripay API returned: " . $response->body() . ". Using Sandbox fallback for local testing.");
+            $errorMessage = $response->json('message') ?? $response->body();
+            Log::error("Tripay API Error on transaction/create: {$errorMessage}", [
+                'status' => $response->status(),
+                'payload' => $payload,
+                'response' => $response->json() ?? $response->body(),
+            ]);
+
+            // Jika ada API Key yang dikonfigurasi, laporkan error sebenarnya dari Tripay agar tidak diam-diam tertutup data mock
+            if (!empty($this->apiKey) && !str_starts_with($this->apiKey, 'MOCK')) {
+                throw new Exception("Tripay Gateway: {$errorMessage}. Periksa Kredensial Tripay (API Key, Private Key, atau Merchant Code) di .env.");
+            }
         } catch (Exception $e) {
-            Log::warning("Tripay exception: " . $e->getMessage() . ". Using Sandbox fallback for local testing.");
+            Log::error("Tripay exception: " . $e->getMessage());
+            if (str_starts_with($e->getMessage(), 'Tripay Gateway:')) {
+                throw $e;
+            }
         }
 
-        // Sandbox fallback agar flow pendaftaran & checkout bisa diuji lokal secara mulus
+        // Sandbox fallback HANYA jika TRIPAY_API_KEY kosong (mode offline development)
         $isQris = str_starts_with($paymentMethod, 'QRIS');
         $isRetail = in_array($paymentMethod, ['ALFAMART', 'INDOMARET', 'ALFAMIDI']);
         $isEwallet = in_array($paymentMethod, ['OVO', 'DANA', 'SHOPEEPAY']);

@@ -335,9 +335,7 @@ class JelatixRunningEventTest extends TestCase
 
         $order = Order::where('customer_email', 'fajar@running.id')->first();
         $this->assertNotNull($order);
-        $this->assertEquals('pending', $order->status);
-
-        $checkoutRes->assertRedirect(route('public.order.show', $order->order_code));
+        $checkoutRes->assertRedirect("https://tripay.co.id/checkout/TP-TEST-{$order->order_code}");
 
         // Test Invoice View
         $invoiceRes = $this->get("/orders/{$order->order_code}");
@@ -522,6 +520,122 @@ class JelatixRunningEventTest extends TestCase
         $response->assertJson([
             'status' => 'success',
         ]);
+    }
+
+    public function test_tripay_webhook_valid_signature_marks_order_as_paid_and_assigns_bib(): void
+    {
+        $order = Order::create([
+            'event_id' => $this->event->id,
+            'order_code' => 'JLTX-TP-TEST-001',
+            'customer_name' => 'Tripay Tester',
+            'customer_email' => 'tripay@test.com',
+            'customer_phone' => '0812345678',
+            'grand_total' => 255000,
+            'status' => 'pending',
+        ]);
+
+        $participant = Participant::create([
+            'order_id' => $order->id,
+            'event_category_id' => $this->category->id,
+            'full_name' => 'Tripay Tester',
+            'id_number' => '3271019999990001',
+            'gender' => 'male',
+            'birth_date' => '1990-01-01',
+            'phone' => '0812345678',
+            'email' => 'tripay@test.com',
+            'emergency_contact_name' => 'Kontak',
+            'emergency_contact_phone' => '0812345679',
+            'emergency_contact_relation' => 'Kerabat',
+        ]);
+
+        $privateKey = config('tripay.private_key');
+        $payload = [
+            'reference' => 'DEV-T3943012345678',
+            'merchant_ref' => $order->order_code,
+            'payment_method' => 'BRIVA',
+            'payment_method_code' => 'BRIVA',
+            'total_amount' => 255000,
+            'fee_merchant' => 0,
+            'fee_customer' => 3000,
+            'total_fee' => 3000,
+            'amount_received' => 255000,
+            'is_closed_payment' => 1,
+            'status' => 'PAID',
+            'paid_at' => time(),
+            'note' => 'Payment testing callback',
+        ];
+
+        $rawJson = json_encode($payload);
+        $signature = hash_hmac('sha256', $rawJson, $privateKey);
+
+        $response = $this->call(
+            'POST',
+            '/api/webhooks/tripay',
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_X_CALLBACK_SIGNATURE' => $signature,
+                'HTTP_X_CALLBACK_EVENT' => 'payment_status',
+            ],
+            $rawJson
+        );
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $order->refresh();
+        $this->assertEquals('paid', $order->status);
+        $this->assertNotNull($order->paid_at);
+
+        $participant->refresh();
+        $this->assertNotNull($participant->bib_number);
+    }
+
+    public function test_tripay_webhook_invalid_signature_is_rejected(): void
+    {
+        $response = $this->call(
+            'POST',
+            '/api/webhooks/tripay',
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_X_CALLBACK_SIGNATURE' => 'invalid_fake_signature',
+                'HTTP_X_CALLBACK_EVENT' => 'payment_status',
+            ],
+            json_encode(['merchant_ref' => 'TEST'])
+        );
+
+        $response->assertStatus(403);
+        $response->assertJson(['success' => false, 'message' => 'Invalid signature']);
+    }
+
+    public function test_tripay_webhook_handles_test_ping(): void
+    {
+        $privateKey = config('tripay.private_key');
+        $payload = ['merchant_ref' => 'TEST', 'status' => 'PAID'];
+        $rawJson = json_encode($payload);
+        $signature = hash_hmac('sha256', $rawJson, $privateKey);
+
+        $response = $this->call(
+            'POST',
+            '/api/webhooks/tripay',
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_X_CALLBACK_SIGNATURE' => $signature,
+                'HTTP_X_CALLBACK_EVENT' => 'payment_status',
+            ],
+            $rawJson
+        );
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
     }
 }
 

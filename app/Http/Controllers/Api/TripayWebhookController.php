@@ -50,6 +50,15 @@ class TripayWebhookController extends Controller
         $merchantRef = $data['merchant_ref'];
         $tripayStatus = strtoupper($data['status'] ?? '');
         $tripayReference = $data['reference'] ?? null;
+        $callbackEvent = $request->header('X-Callback-Event', 'payment_status');
+
+        // Dukungan test callback / URL validator dari Dashboard Tripay
+        if (in_array(strtoupper($merchantRef), ['TEST', 'TEST_MERCHANT_REF', 'SAMPLE', 'PING', 'TESTING'])) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tripay webhook connection verified successfully',
+            ]);
+        }
 
         $order = Order::where('order_code', $merchantRef)->first();
 
@@ -57,7 +66,7 @@ class TripayWebhookController extends Controller
         PaymentLog::create([
             'order_id' => $order?->id,
             'gateway' => 'tripay',
-            'event_type' => 'callback',
+            'event_type' => $callbackEvent,
             'tripay_reference' => $tripayReference,
             'status' => $tripayStatus,
             'payload' => $data,

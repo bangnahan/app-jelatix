@@ -237,7 +237,12 @@ class PublicRegistrationController extends Controller
             });
 
             // Request transaksi ke Tripay
-            $this->tripayService->createTransaction($order, $request->input('payment_method'));
+            $tripayData = $this->tripayService->createTransaction($order, $request->input('payment_method'));
+
+            // Jika Tripay mengembalikan checkout_url resmi, langsung alihkan calon peserta ke halaman pembayaran Tripay
+            if (!empty($tripayData['checkout_url']) && filter_var($tripayData['checkout_url'], FILTER_VALIDATE_URL) && !str_contains($tripayData['checkout_url'], url('/orders/'))) {
+                return redirect()->away($tripayData['checkout_url']);
+            }
 
             return redirect()->route('public.order.show', $order->order_code);
         } catch (Exception $e) {

@@ -101,6 +101,19 @@
                     <span class="text-xs text-slate-400">Metode: <strong class="text-white">{{ $order->tripay_payment_method }}</strong></span>
                 </div>
 
+                @if($order->tripay_checkout_url && !str_contains($order->tripay_checkout_url, url("/orders/{$order->order_code}")))
+                    <div class="mb-5 sm:mb-6">
+                        <a 
+                            href="{{ $order->tripay_checkout_url }}" 
+                            target="_blank" 
+                            class="w-full bg-gradient-to-r from-sky-400 via-sky-500 to-indigo-500 hover:from-sky-300 hover:to-indigo-400 active:scale-95 text-slate-950 font-black py-4 px-5 rounded-2xl text-xs sm:text-sm transition shadow-xl shadow-sky-500/25 flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            <span>Buka Halaman Pembayaran & Panduan Tripay &rarr;</span>
+                        </a>
+                    </div>
+                @endif
+
                 <!-- Payment Details Card (QRIS vs VA vs Minimarket vs E-Wallet/Paylater) -->
                 @if(str_starts_with($order->tripay_payment_method, 'QRIS') && $order->tripay_qr_url)
                     <div class="bg-white rounded-2xl p-4 sm:p-6 text-slate-950 text-center mb-5 sm:mb-6 shadow-xl">
@@ -152,14 +165,6 @@
                                 Transfer sesuai nominal persis ke nomor Virtual Account di atas sebelum batas waktu berakhir.
                             @endif
                         </p>
-                    </div>
-                @endif
-
-                @if($order->tripay_checkout_url && $order->tripay_checkout_url !== url("/orders/{$order->order_code}"))
-                    <div class="mb-6">
-                        <a href="{{ $order->tripay_checkout_url }}" target="_blank" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-slate-950 font-bold py-3.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2">
-                            Lanjutkan Pembayaran di {{ $order->tripay_payment_method }} &rarr;
-                        </a>
                     </div>
                 @endif
 
