@@ -390,32 +390,47 @@
                 </section>
             @endif
 
-            <!-- 6. Metode Pembayaran Tripay -->
+            <!-- 6. Metode Pembayaran Tripay Lengkap -->
             <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
                 <h2 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
                     <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">6</span>
-                    Metode Pembayaran (Tripay Payment Gateway)
+                    Metode Pembayaran (Tripay Multi-Channel)
                 </h2>
-                <p class="text-xs text-slate-400 mb-6">Pilih jalur pembayaran otomatis yang Anda inginkan.</p>
+                <p class="text-xs text-slate-400 mb-6">Pilih salah satu metode pembayaran otomatis yang Anda inginkan.</p>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    @foreach($paymentChannels as $ch)
-                        <label class="border-2 border-slate-700 hover:border-sky-500 rounded-xl p-4 flex items-center justify-between cursor-pointer transition bg-slate-800/40 has-[:checked]:border-sky-500 has-[:checked]:bg-sky-500/10">
-                            <div class="flex items-center gap-3">
-                                <input 
-                                    type="radio" 
-                                    name="payment_method" 
-                                    value="{{ $ch['code'] }}" 
-                                    required 
-                                    {{ $loop->first ? 'checked' : '' }}
-                                    class="text-sky-500 focus:ring-sky-500"
-                                >
-                                <div>
-                                    <span class="font-bold text-white text-sm block">{{ $ch['name'] }}</span>
-                                    <span class="text-[11px] text-slate-400">{{ $ch['group'] ?? 'Online Payment' }}</span>
-                                </div>
+                @php
+                    $groupedChannels = collect($paymentChannels)->groupBy('group');
+                @endphp
+
+                <div class="space-y-6">
+                    @foreach($groupedChannels as $groupName => $channels)
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-sky-400 mb-2.5 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                                {{ $groupName }}
+                                <span class="text-[10px] text-slate-500 font-normal">({{ count($channels) }} pilihan)</span>
                             </div>
-                        </label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                @foreach($channels as $ch)
+                                    <label class="border-2 border-slate-700/80 hover:border-sky-500 rounded-xl p-3 flex items-center justify-between cursor-pointer transition bg-slate-800/40 has-[:checked]:border-sky-500 has-[:checked]:bg-sky-500/10">
+                                        <div class="flex items-center gap-3">
+                                            <input 
+                                                type="radio" 
+                                                name="payment_method" 
+                                                value="{{ $ch['code'] }}" 
+                                                required 
+                                                {{ $loop->parent->first && $loop->first ? 'checked' : '' }}
+                                                class="text-sky-500 focus:ring-sky-500"
+                                            >
+                                            <div>
+                                                <span class="font-bold text-white text-xs sm:text-sm block">{{ $ch['name'] }}</span>
+                                                <span class="text-[10px] text-slate-400">Kode: <strong class="text-sky-300 font-mono">{{ $ch['code'] }}</strong></span>
+                                            </div>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
                     @endforeach
                 </div>
             </section>

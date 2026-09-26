@@ -47,15 +47,46 @@ class TripayService
             Log::warning('Tripay getPaymentChannels exception, fallback to default channels: ' . $e->getMessage());
         }
 
-        // Default channels (QRIS & Virtual Accounts) agar pendaftaran tetap bisa berjalan
+        // Seluruh daftar lengkap channel pembayaran Tripay resmi
         return [
+            // --- QRIS & E-Wallet ---
             [
                 'code' => 'QRIS',
-                'name' => 'QRIS (BCA, Mandiri, GoPay, OVO, ShopeePay)',
-                'group' => 'E-Wallet',
+                'name' => 'QRIS (BCA, Mandiri, GoPay, OVO, Dana, ShopeePay, LinkAja)',
+                'group' => 'QRIS & E-Wallet',
                 'fee_flat' => 750,
                 'fee_percent' => 0.7,
             ],
+            [
+                'code' => 'QRISC',
+                'name' => 'QRIS Customizable (Dinamis)',
+                'group' => 'QRIS & E-Wallet',
+                'fee_flat' => 750,
+                'fee_percent' => 0.7,
+            ],
+            [
+                'code' => 'OVO',
+                'name' => 'OVO Wallet',
+                'group' => 'QRIS & E-Wallet',
+                'fee_flat' => 0,
+                'fee_percent' => 3.0,
+            ],
+            [
+                'code' => 'SHOPEEPAY',
+                'name' => 'ShopeePay',
+                'group' => 'QRIS & E-Wallet',
+                'fee_flat' => 0,
+                'fee_percent' => 2.0,
+            ],
+            [
+                'code' => 'DANA',
+                'name' => 'DANA',
+                'group' => 'QRIS & E-Wallet',
+                'fee_flat' => 0,
+                'fee_percent' => 1.67,
+            ],
+
+            // --- Virtual Account ---
             [
                 'code' => 'BCAVA',
                 'name' => 'BCA Virtual Account',
@@ -83,6 +114,80 @@ class TripayService
                 'group' => 'Virtual Account',
                 'fee_flat' => 3000,
                 'fee_percent' => 0,
+            ],
+            [
+                'code' => 'PERMATAVA',
+                'name' => 'Permata Virtual Account',
+                'group' => 'Virtual Account',
+                'fee_flat' => 3000,
+                'fee_percent' => 0,
+            ],
+            [
+                'code' => 'CIMBVA',
+                'name' => 'CIMB Niaga Virtual Account',
+                'group' => 'Virtual Account',
+                'fee_flat' => 3000,
+                'fee_percent' => 0,
+            ],
+            [
+                'code' => 'BSIVA',
+                'name' => 'BSI Virtual Account (Bank Syariah Indonesia)',
+                'group' => 'Virtual Account',
+                'fee_flat' => 3000,
+                'fee_percent' => 0,
+            ],
+            [
+                'code' => 'DANAMONVA',
+                'name' => 'Danamon Virtual Account',
+                'group' => 'Virtual Account',
+                'fee_flat' => 3000,
+                'fee_percent' => 0,
+            ],
+            [
+                'code' => 'MUAMALATVA',
+                'name' => 'Muamalat Virtual Account',
+                'group' => 'Virtual Account',
+                'fee_flat' => 3000,
+                'fee_percent' => 0,
+            ],
+            [
+                'code' => 'SINARMASVA',
+                'name' => 'Bank Sinarmas Virtual Account',
+                'group' => 'Virtual Account',
+                'fee_flat' => 3000,
+                'fee_percent' => 0,
+            ],
+
+            // --- Convenience Store (Gerai Ritel) ---
+            [
+                'code' => 'ALFAMART',
+                'name' => 'Alfamart / Alfamidi / Dan+Dan',
+                'group' => 'Gerai Ritel (Minimarket)',
+                'fee_flat' => 3500,
+                'fee_percent' => 0,
+            ],
+            [
+                'code' => 'INDOMARET',
+                'name' => 'Indomaret / Ceriamart',
+                'group' => 'Gerai Ritel (Minimarket)',
+                'fee_flat' => 3500,
+                'fee_percent' => 0,
+            ],
+
+            // --- Paylater ---
+            [
+                'code' => 'KREDIVO',
+                'name' => 'Kredivo (Cicilan 30 Hari / 3-12 Bulan)',
+                'group' => 'Paylater',
+                'fee_flat' => 1000,
+                'fee_percent' => 2.3,
+            ],
+            [
+                'code' => 'AKULAKU',
+                'name' => 'Akulaku PayLater',
+                'group' => 'Paylater',
+                'fee_flat' => 1000,
+                'fee_percent' => 2.0,
             ],
         ];
     }
