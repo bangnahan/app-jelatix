@@ -637,6 +637,81 @@ class JelatixRunningEventTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
     }
+
+    public function test_registration_sends_payment_pending_email_with_30_minute_warning_and_guide(): void
+    {
+        $order = Order::create([
+            'event_id' => $this->event->id,
+            'order_code' => 'JLTX-TEST-PAYPENDING',
+            'customer_name' => 'Budi Santoso',
+            'customer_email' => 'budi@santoso.id',
+            'customer_phone' => '081234567890',
+            'subtotal' => 250000,
+            'platform_fee' => 5000,
+            'grand_total' => 255000,
+            'status' => 'pending',
+            'tripay_reference' => 'DEV-T39430TEST123',
+            'tripay_payment_method' => 'BRIVA',
+            'tripay_pay_code' => '442711669584357',
+            'tripay_checkout_url' => 'https://tripay.co.id/checkout/DEV-T39430TEST123',
+            'expired_at' => now()->addMinutes(30),
+        ]);
+
+        $jersey = \App\Models\JerseySize::create([
+            'event_id' => $this->event->id,
+            'size_name' => 'XL',
+            'gender_type' => 'unisex',
+            'stock' => 20,
+            'allocated_stock' => 1,
+        ]);
+
+        $participant = Participant::create([
+            'order_id' => $order->id,
+            'event_category_id' => $this->category->id,
+            'jersey_size_id' => $jersey->id,
+            'full_name' => 'Budi Santoso',
+            'bib_name' => 'BUDI S',
+            'id_type' => 'KTP',
+            'id_number' => '3201010101010001',
+            'gender' => 'male',
+            'birth_date' => '1995-05-05',
+            'blood_type' => 'O+',
+            'phone' => '081234567890',
+            'email' => 'budi@santoso.id',
+            'emergency_contact_name' => 'Siti',
+            'emergency_contact_phone' => '081234567899',
+            'emergency_contact_relation' => 'Istri',
+        ]);
+
+        // Render blade view check
+        $viewContent = view('emails.payment_pending', [
+            'order' => $order->fresh(['event', 'participants.category', 'participants.jerseySize', 'items.category']),
+            'event' => $this->event,
+        ])->render();
+
+        $this->assertStringContainsString('Pendaftaran Berhasil!', $viewContent);
+        $this->assertStringContainsString('30 MENIT', $viewContent);
+        $this->assertStringContainsString('442711669584357', $viewContent);
+        $this->assertStringContainsString('BRIVA', $viewContent);
+        $this->assertStringContainsString('https://tripay.co.id/checkout/DEV-T39430TEST123', $viewContent);
+        $this->assertStringContainsString('BUDI S', $viewContent);
+
+        // Run the Job directly
+        $mockMailketing = \Mockery::mock(\App\Services\MailketingService::class);
+        $mockMailketing->shouldReceive('sendEmail')
+            ->once()
+            ->withArgs(function ($recipientEmail, $recipientName, $subject, $htmlContent) {
+                return $recipientEmail === 'budi@santoso.id'
+                    && $recipientName === 'Budi Santoso'
+                    && str_contains($subject, 'Batas Waktu 30 Menit')
+                    && str_contains($htmlContent, '30 MENIT')
+                    && str_contains($htmlContent, '442711669584357');
+            })
+            ->andReturn(true);
+
+        $job = new \App\Jobs\SendPaymentPendingEmailJob($order);
+        $job->handle($mockMailketing);
+    }
 }
 
 

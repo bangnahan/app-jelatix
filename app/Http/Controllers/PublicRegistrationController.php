@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendPaymentPendingEmailJob;
 use App\Jobs\SendTicketEmailJob;
 use App\Models\Event;
 use App\Models\EventCategory;
@@ -242,6 +243,9 @@ class PublicRegistrationController extends Controller
 
             // Request transaksi ke Tripay
             $tripayData = $this->tripayService->createTransaction($order, $request->input('payment_method'));
+
+            // Kirim email panduan pembayaran & pemberitahuan batas bayar 30 menit ke pendaftar
+            SendPaymentPendingEmailJob::dispatchAfterResponse($order);
 
             // Jika Tripay mengembalikan checkout_url resmi, langsung alihkan calon peserta ke halaman pembayaran Tripay
             if (!empty($tripayData['checkout_url']) && filter_var($tripayData['checkout_url'], FILTER_VALIDATE_URL) && !str_contains($tripayData['checkout_url'], url('/orders/'))) {
