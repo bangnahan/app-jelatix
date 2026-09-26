@@ -37,8 +37,7 @@ class OrganizerPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Organizer/Widgets'), for: 'App\\Filament\\Organizer\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                \App\Filament\Organizer\Widgets\EventStatsOverview::class,
             ])
             ->middleware([
                 EncryptCookies::class,
