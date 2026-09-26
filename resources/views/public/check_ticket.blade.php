@@ -63,6 +63,13 @@
             </p>
         </div>
 
+        <!-- Error Alerts -->
+        @if($errors->any())
+            <div class="bg-rose-500/10 border border-rose-500/30 text-rose-300 px-4 py-3 rounded-xl text-xs mb-6 text-center">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
         <!-- Search Box -->
         <div class="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-4 sm:p-6 shadow-2xl mb-10">
             <form action="{{ route('public.ticket.search') }}" method="POST" class="flex flex-col sm:flex-row gap-3">

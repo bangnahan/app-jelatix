@@ -2,11 +2,17 @@
 
 use App\Http\Controllers\CrewScannerController;
 use App\Http\Controllers\PublicTicketController;
+use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('public.ticket.index');
-});
+    $events = Event::where('status', 'published')
+        ->with(['categories', 'organizer'])
+        ->orderBy('event_start_date', 'asc')
+        ->get();
+
+    return view('public.home', compact('events'));
+})->name('home');
 
 // Fitur Mandiri Pelari: Cek Tiket & Unduh E-Ticket
 Route::get('/cek-tiket', [PublicTicketController::class, 'index'])->name('public.ticket.index');
