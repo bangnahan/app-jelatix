@@ -57,9 +57,9 @@
                     type="text" 
                     id="manualInput" 
                     placeholder="Ketik Nomor BIB atau NIK..." 
-                    class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                    class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-base sm:text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
                 >
-                <button type="submit" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-4 py-2 rounded-lg text-xs cursor-pointer">
+                <button type="submit" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-4 py-2.5 rounded-lg text-xs cursor-pointer">
                     Cek
                 </button>
             </form>
@@ -108,8 +108,8 @@
                     <span>Pengambilan Diwakilkan (Surat Kuasa)</span>
                 </label>
                 <div id="proxyInputs" class="hidden space-y-2">
-                    <input type="text" id="proxyName" placeholder="Nama Penerima Kuasa..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
-                    <input type="text" id="proxyNik" placeholder="NIK KTP Penerima Kuasa..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                    <input type="text" id="proxyName" placeholder="Nama Penerima Kuasa..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-base sm:text-xs text-white">
+                    <input type="text" id="proxyNik" placeholder="NIK KTP Penerima Kuasa..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-base sm:text-xs text-white">
                 </div>
             </div>
 

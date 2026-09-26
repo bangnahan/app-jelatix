@@ -25,6 +25,14 @@
             background: linear-gradient(135deg, #090e1a 0%, #0f172a 50%, #1e1b4b 100%);
             color: #f8fafc;
             min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
@@ -43,30 +51,30 @@
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-10 flex-1 w-full">
+    <main class="max-w-4xl mx-auto px-3.5 sm:px-6 py-5 sm:py-10 pb-36 sm:pb-28 flex-1 w-full">
         <!-- Event Header Card -->
-        <div class="bg-slate-900/80 border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl mb-8 relative overflow-hidden">
+        <div class="bg-slate-900/80 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl mb-6 sm:mb-8 relative overflow-hidden">
             <div class="flex items-center gap-2 mb-2">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     Pendaftaran Dibuka
                 </span>
-                <span class="text-xs text-slate-400">&bull; {{ $event->organizer?->name }}</span>
+                <span class="text-xs text-slate-400 truncate">&bull; {{ $event->organizer?->name }}</span>
             </div>
-            <h1 class="text-2xl sm:text-4xl font-extrabold text-white mb-2">{{ $event->title }}</h1>
-            <div class="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-slate-300">
+            <h1 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2 leading-tight">{{ $event->title }}</h1>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-300">
                 <span class="flex items-center gap-1.5 text-sky-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     {{ $event->event_start_date->format('d F Y, H:i') }} WIB
                 </span>
                 <span class="flex items-center gap-1.5 text-slate-300">
-                    <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+                    <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
                     {{ $event->race_location_name }}
                 </span>
             </div>
         </div>
 
         @if($errors->any())
-            <div class="bg-rose-500/15 border-2 border-rose-500/40 text-rose-200 px-5 py-4 rounded-xl text-sm mb-8">
+            <div class="bg-rose-500/15 border-2 border-rose-500/40 text-rose-200 px-4 sm:px-5 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm mb-6 sm:mb-8">
                 <div class="font-bold flex items-center gap-2 mb-1">
                     <svg class="w-5 h-5 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     Perhatian:
@@ -83,21 +91,21 @@
             @csrf
 
             <!-- 1. Data Pemesan (Penanggung Jawab / PIC) -->
-            <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
-                <div class="flex items-center justify-between mb-1">
-                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                        <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">1</span>
-                        Data Pemesan (Penanggung Jawab Pembelian / PIC)
+            <section class="bg-slate-900/60 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 shadow-xl">
+                <div class="flex items-center justify-between mb-1 gap-2">
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center shrink-0">1</span>
+                        <span>Data Pemesan (PIC)</span>
                     </h2>
-                    <span class="text-[11px] text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20 font-mono">
+                    <span class="text-[10px] sm:text-[11px] text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20 font-mono shrink-0">
                         PIC Utama
                     </span>
                 </div>
-                <p class="text-xs text-slate-400 mb-6">
+                <p class="text-xs text-slate-400 mb-5 sm:mb-6">
                     Invoice pembayaran Tripay dan seluruh arsip E-Ticket akan dikirimkan ke kontak pemesan ini.
                 </p>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">Nama Lengkap Pemesan *</label>
                         <input 
@@ -107,7 +115,7 @@
                             value="{{ old('buyer_name') }}" 
                             required 
                             placeholder="Contoh: Budi Santoso"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 sm:px-4 py-3 sm:py-2.5 text-base sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 transition"
                         >
                     </div>
 
@@ -120,7 +128,7 @@
                             value="{{ old('buyer_email') }}" 
                             required 
                             placeholder="budi@example.com"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 sm:px-4 py-3 sm:py-2.5 text-base sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 transition"
                         >
                     </div>
 
@@ -133,25 +141,25 @@
                             value="{{ old('buyer_phone') }}" 
                             required 
                             placeholder="0812xxxxxxxx"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 sm:px-4 py-3 sm:py-2.5 text-base sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 transition"
                         >
                     </div>
                 </div>
             </section>
 
             <!-- 2. Formulir Data Pelari & Tiket (Multi-Runner Kolektif) -->
-            <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-800">
+            <section class="bg-slate-900/60 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 sm:mb-6 pb-4 border-b border-slate-800">
                     <div>
-                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">2</span>
-                            Daftar Pelari & Nomor Dada (BIB)
+                        <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center shrink-0">2</span>
+                            <span>Daftar Pelari & Nomor Dada (BIB)</span>
                         </h2>
                         <p class="text-xs text-slate-400 mt-0.5">
                             Beli tiket untuk diri Anda sendiri atau daftarkan hingga 10 teman sekaligus dalam 1 kali pembayaran.
                         </p>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-between sm:justify-end gap-2.5">
                         <span id="runnerCountBadge" class="text-xs font-mono font-bold text-sky-300 bg-sky-500/10 px-3 py-1.5 rounded-xl border border-sky-500/20">
                             1 Pelari Terdaftar
                         </span>
@@ -159,32 +167,32 @@
                             type="button" 
                             id="addRunnerBtn" 
                             onclick="addRunner()" 
-                            class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer"
+                            class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-slate-950 font-black text-xs px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer shrink-0"
                         >
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                            + TAMBAH PELARI
+                            <span>+ TAMBAH PELARI</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Container Kartu Pelari -->
-                <div id="runnersContainer" class="space-y-6">
+                <div id="runnersContainer" class="space-y-5 sm:space-y-6">
                     <!-- Kartu pelari akan dirender secara dinamis oleh JavaScript -->
                 </div>
             </section>
 
 
             <!-- 6. Metode Pembayaran Tripay Lengkap -->
-            <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
+            <section class="bg-slate-900/60 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 shadow-xl">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                     <div>
-                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">6</span>
-                            Metode Pembayaran (Tripay Multi-Channel)
+                        <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center shrink-0">3</span>
+                            <span>Metode Pembayaran (Tripay 26 Channel)</span>
                         </h2>
                         <p class="text-xs text-slate-400 mt-0.5">Seluruh channel resmi Tripay tersedia. Pilih channel yang paling nyaman untuk Anda.</p>
                     </div>
-                    <span class="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full w-fit">
+                    <span class="text-[10px] sm:text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full w-fit">
                         {{ count($paymentChannels) }} Channel Aktif
                     </span>
                 </div>
@@ -203,17 +211,17 @@
                         <input 
                             type="text" 
                             id="paymentChannelSearch" 
-                            placeholder="Cari bank atau metode (contoh: BCA, Mandiri, BRI, QRIS, Dana, Alfamart...)" 
-                            class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition"
+                            placeholder="Cari bank atau e-wallet (BCA, Mandiri, BRI, QRIS, Dana, Alfamart...)" 
+                            class="w-full pl-10 pr-4 py-3 sm:py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition"
                         >
                     </div>
 
-                    <!-- Category Tabs -->
-                    <div class="flex flex-wrap gap-2 pt-1" id="categoryTabContainer">
+                    <!-- Category Tabs (Horizontal Scrollable on Mobile) -->
+                    <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar flex-nowrap -mx-4 px-4 sm:mx-0 sm:px-0" id="categoryTabContainer">
                         <button 
                             type="button" 
                             data-tab="all" 
-                            class="cat-tab-btn active-tab px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20"
+                            class="cat-tab-btn active-tab px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20 shrink-0 whitespace-nowrap"
                         >
                             Semua ({{ count($paymentChannels) }})
                         </button>
@@ -221,7 +229,7 @@
                             <button 
                                 type="button" 
                                 data-tab="{{ Str::slug($groupName) }}" 
-                                class="cat-tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 transition cursor-pointer"
+                                class="cat-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 transition cursor-pointer shrink-0 whitespace-nowrap"
                             >
                                 {{ $groupName }} ({{ count($channels) }})
                             </button>
@@ -238,7 +246,7 @@
                                 {{ $groupName }}
                                 <span class="text-[10px] text-slate-500 font-normal">({{ count($channels) }} pilihan)</span>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                                 @foreach($channels as $ch)
                                     @php
                                         $initials = strtoupper(substr($ch['code'], 0, 3));
@@ -282,12 +290,12 @@
                                                     <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-900 text-sky-300 border border-slate-700">
                                                         {{ $ch['code'] }}
                                                     </span>
-                                                    <span class="text-[10px] text-slate-400">Verifikasi Otomatis</span>
+                                                    <span class="text-[10px] text-slate-400 hidden xs:inline">Verifikasi Otomatis</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="shrink-0 text-right pl-2 hidden xs:block">
+                                        <div class="shrink-0 text-right pl-2">
                                             <span class="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                                                 Instan
                                             </span>
@@ -305,23 +313,23 @@
             </section>
 
             <!-- 7. Legal & Medical Waiver Agreement -->
-            <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
-                <h2 class="text-base font-bold text-white mb-3">Pernyataan Pelepasan Tanggung Jawab Hukum & Medis (Waiver)</h2>
+            <section class="bg-slate-900/60 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 shadow-xl">
+                <h2 class="text-sm sm:text-base font-bold text-white mb-3">Pernyataan Pelepasan Tanggung Jawab Hukum & Medis (Waiver)</h2>
                 
-                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-slate-400 max-h-36 overflow-y-auto mb-4 leading-relaxed">
+                <div class="bg-slate-950 p-3.5 sm:p-4 rounded-xl border border-slate-800 text-xs text-slate-400 max-h-36 overflow-y-auto mb-4 leading-relaxed">
                     {{ $event->waiver_content ?: 'Dengan ini saya menyatakan bahwa saya mengikuti lomba lari ini atas kemauan sendiri dan dalam kondisi kesehatan yang prima. Saya membebaskan penyelenggara dari segala tuntutan hukum akibat cedera yang timbul selama perlombaan.' }}
                 </div>
 
                 <label class="flex items-start gap-3 cursor-pointer">
-                    <input type="checkbox" name="waiver_accepted" value="1" required class="mt-1 rounded bg-slate-800 border-slate-700 text-sky-500">
+                    <input type="checkbox" name="waiver_accepted" value="1" required class="mt-1 rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-0">
                     <span class="text-xs text-slate-300 leading-normal">
                         Saya telah membaca, memahami, dan menyetujui seluruh ketentuan lomba, size chart jersey, serta pernyataan pelepasan tanggung jawab hukum di atas.
                     </span>
                 </label>
             </section>
 
-            <!-- Order Summary & Checkout Submit -->
-            <div class="bg-slate-900 border-2 border-sky-500/50 rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
+            <!-- Order Summary In-Page Box -->
+            <div class="bg-slate-900 border-2 border-sky-500/50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 mb-6">
                 <div class="w-full sm:w-auto">
                     <div class="flex items-center gap-3 mb-1">
                         <span class="text-xs text-slate-400 uppercase tracking-widest block">Total Pembayaran</span>
@@ -347,13 +355,36 @@
                 <button 
                     type="submit" 
                     id="submitBtn"
-                    class="w-full sm:w-auto bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-slate-950 font-black px-10 py-4 rounded-xl text-base transition shadow-xl shadow-sky-500/25 flex items-center justify-center gap-2 cursor-pointer shrink-0"
+                    class="w-full sm:w-auto bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 text-slate-950 font-black px-8 py-3.5 sm:py-4 rounded-xl text-sm sm:text-base transition shadow-xl shadow-sky-500/25 flex items-center justify-center gap-2 cursor-pointer shrink-0"
                 >
                     <span id="submitBtnText">LANJUT KE PEMBAYARAN TRIPAY (1 TIKET) &rarr;</span>
                 </button>
             </div>
         </form>
     </main>
+
+    <!-- Floating Sticky Bottom Bar for Mobile & Desktop -->
+    <div class="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/90 py-3 px-4 sm:px-6 shadow-[0_-8px_30px_rgba(0,0,0,0.7)]">
+        <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
+            <div class="min-w-0">
+                <div class="flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-400">
+                    <span>Total Tagihan:</span>
+                    <span id="stickyTicketCountBadge" class="font-mono font-bold text-sky-400 bg-sky-500/10 px-1.5 py-0.2 rounded border border-sky-500/20 text-[10px]">1 Tiket</span>
+                </div>
+                <div id="stickyGrandTotalDisplay" class="text-lg sm:text-2xl font-black text-sky-400 font-mono leading-tight tracking-tight truncate">
+                    Rp 0
+                </div>
+            </div>
+            <button 
+                type="submit" 
+                form="regForm"
+                id="stickySubmitBtn"
+                class="bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 text-slate-950 font-black px-5 sm:px-8 py-3 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-sky-500/25 flex items-center gap-1.5 cursor-pointer shrink-0"
+            >
+                <span id="stickySubmitBtnText">BAYAR SEKARANG &rarr;</span>
+            </button>
+        </div>
+    </div>
 
     <!-- Size Chart Modal -->
     <div id="sizeChartModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -438,8 +469,8 @@
                                     const opts = (f.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
                                     return `
                                         <div>
-                                            <label class="block text-[11px] font-bold text-slate-300 mb-1">${f.label} ${f.is_required ? '<span class="text-rose-400">*</span>' : ''}</label>
-                                            <select name="participants[${index}][custom_fields][${f.field_key}]" ${req} class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-sky-500">
+                                            <label class="block text-xs font-bold text-slate-300 mb-1.5">${f.label} ${f.is_required ? '<span class="text-rose-400">*</span>' : ''}</label>
+                                            <select name="participants[${index}][custom_fields][${f.field_key}]" ${req} class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-xs text-white outline-none focus:border-sky-500">
                                                 <option value="">-- Pilih --</option>
                                                 ${opts}
                                             </select>
@@ -448,8 +479,8 @@
                                 } else {
                                     return `
                                         <div>
-                                            <label class="block text-[11px] font-bold text-slate-300 mb-1">${f.label} ${f.is_required ? '<span class="text-rose-400">*</span>' : ''}</label>
-                                            <input type="text" name="participants[${index}][custom_fields][${f.field_key}]" placeholder="${f.placeholder || ''}" ${req} class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500">
+                                            <label class="block text-xs font-bold text-slate-300 mb-1.5">${f.label} ${f.is_required ? '<span class="text-rose-400">*</span>' : ''}</label>
+                                            <input type="text" name="participants[${index}][custom_fields][${f.field_key}]" placeholder="${f.placeholder || ''}" ${req} class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500">
                                         </div>
                                     `;
                                 }
@@ -460,11 +491,11 @@
             }
 
             return `
-                <div class="runner-card bg-slate-950/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl transition" id="runnerCard_${index}" data-index="${index}">
+                <div class="runner-card bg-slate-950/80 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl transition" id="runnerCard_${index}" data-index="${index}">
                     <!-- Header Kartu -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4 mb-4">
                         <div class="flex items-center gap-2.5">
-                            <span class="w-7 h-7 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center shadow-md shadow-sky-500/20">
+                            <span class="w-7 h-7 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0">
                                 ${index + 1}
                             </span>
                             <div>
@@ -472,17 +503,17 @@
                                 <span class="text-[11px] text-slate-400">Pilih kategori, ukuran kaos, dan identitas lomba</span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             ${isFirst ? `
-                                <label class="flex items-center gap-2 text-xs text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-3 py-1.5 rounded-xl cursor-pointer transition">
+                                <label class="flex items-center gap-2 text-xs text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-3 py-2 sm:py-1.5 rounded-xl cursor-pointer transition">
                                     <input type="checkbox" id="syncBuyerCheckbox" checked onchange="handleSyncBuyer()" class="rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-0">
                                     <span>Sama dengan Data Pemesan</span>
                                 </label>
                             ` : `
-                                <button type="button" onclick="copyEmergencyFromFirst(${index})" class="text-[11px] font-semibold text-sky-400 hover:text-sky-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 px-2.5 py-1 rounded-lg transition cursor-pointer">
+                                <button type="button" onclick="copyEmergencyFromFirst(${index})" class="text-xs sm:text-[11px] font-semibold text-sky-400 hover:text-sky-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 px-3 py-2 sm:py-1 rounded-xl transition cursor-pointer">
                                     📋 Samakan Kontak Darurat
                                 </button>
-                                <button type="button" onclick="removeRunner(${index})" class="text-[11px] font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 px-2.5 py-1 rounded-lg transition cursor-pointer">
+                                <button type="button" onclick="removeRunner(${index})" class="text-xs sm:text-[11px] font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 px-3 py-2 sm:py-1 rounded-xl transition cursor-pointer">
                                     ✕ Hapus
                                 </button>
                             `}
@@ -490,34 +521,34 @@
                     </div>
 
                     <!-- Pilihan Kategori & Jersey -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 bg-slate-900/60 p-3.5 sm:p-4 rounded-xl border border-slate-800">
                         <div>
-                            <label class="block text-xs font-bold text-sky-400 mb-1 flex items-center justify-between">
+                            <label class="block text-xs font-bold text-sky-400 mb-1.5 flex items-center justify-between">
                                 <span>Pilih Kategori Lomba *</span>
                                 <span class="text-[10px] text-slate-400">Jarak & Kuota</span>
                             </label>
-                            <select name="participants[${index}][category_id]" required onchange="calculateTotal()" class="runner-category-select w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-semibold outline-none focus:border-sky-500">
+                            <select name="participants[${index}][category_id]" required onchange="calculateTotal()" class="runner-category-select w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-xs text-white font-semibold outline-none focus:border-sky-500">
                                 ${categoryOptions}
                             </select>
                         </div>
 
                         <div>
-                            <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center justify-between mb-1.5">
                                 <label class="text-xs font-bold text-amber-400">Pilih Ukuran Jersey Lari *</label>
-                                <button type="button" onclick="document.getElementById('sizeChartModal').classList.remove('hidden')" class="text-[10px] text-sky-400 hover:underline">
+                                <button type="button" onclick="document.getElementById('sizeChartModal').classList.remove('hidden')" class="text-[11px] text-sky-400 hover:underline">
                                     Size Chart (cm)
                                 </button>
                             </div>
-                            <select name="participants[${index}][jersey_size_id]" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-semibold outline-none focus:border-amber-400">
+                            <select name="participants[${index}][jersey_size_id]" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-xs text-white font-semibold outline-none focus:border-amber-400">
                                 ${jerseyOptions}
                             </select>
                         </div>
                     </div>
 
                     <!-- Identitas & Nama BIB -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 mb-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Nama Lengkap Sesuai KTP *</label>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Nama Lengkap Sesuai KTP *</label>
                             <input 
                                 type="text" 
                                 name="participants[${index}][full_name]" 
@@ -525,25 +556,25 @@
                                 required 
                                 oninput="handleRunnerNameInput(${index})" 
                                 placeholder="Contoh: Budi Pratama"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
                             >
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Nama di BIB Dada (Max 14 Karakter)</label>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Nama di BIB Dada (Max 14 Karakter)</label>
                             <input 
                                 type="text" 
                                 name="participants[${index}][bib_name]" 
                                 id="bibName_${index}" 
                                 maxlength="14" 
                                 placeholder="BUDI P (opsional)"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 uppercase"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 uppercase"
                             >
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Jenis Identitas *</label>
-                            <select name="participants[${index}][id_type]" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-sky-500">
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Jenis Identitas *</label>
+                            <select name="participants[${index}][id_type]" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-sm text-white outline-none focus:border-sky-500">
                                 <option value="KTP">KTP (WNI)</option>
                                 <option value="SIM">SIM</option>
                                 <option value="Passport">Passport (WNA/Asing)</option>
@@ -552,37 +583,37 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Nomor Identitas (NIK/Paspor) *</label>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Nomor Identitas (NIK/Paspor) *</label>
                             <input 
                                 type="text" 
                                 name="participants[${index}][id_number]" 
                                 required 
                                 placeholder="16 digit NIK..."
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
                             >
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Jenis Kelamin *</label>
-                            <select name="participants[${index}][gender]" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-sky-500">
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Jenis Kelamin *</label>
+                            <select name="participants[${index}][gender]" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-sm text-white outline-none focus:border-sky-500">
                                 <option value="male">Laki-laki</option>
                                 <option value="female">Perempuan</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Tanggal Lahir *</label>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Tanggal Lahir *</label>
                             <input 
                                 type="date" 
                                 name="participants[${index}][birth_date]" 
                                 required 
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-sky-500"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-sm text-white outline-none focus:border-sky-500"
                             >
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Golongan Darah *</label>
-                            <select name="participants[${index}][blood_type]" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-sky-500">
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Golongan Darah *</label>
+                            <select name="participants[${index}][blood_type]" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-sm text-white outline-none focus:border-sky-500">
                                 <option value="O+">O+</option>
                                 <option value="A+">A+</option>
                                 <option value="B+">B+</option>
@@ -592,36 +623,36 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Target Waktu Finish (Pace)</label>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Target Waktu Finish (Pace)</label>
                             <input 
                                 type="text" 
                                 name="participants[${index}][estimated_finish_time]" 
                                 placeholder="Contoh: 00:30:00 (30 menit)"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
                             >
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Nomor WhatsApp Pelari *</label>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Nomor WhatsApp Pelari *</label>
                             <input 
                                 type="tel" 
                                 name="participants[${index}][phone]" 
                                 id="phone_${index}" 
                                 required 
                                 placeholder="0812xxxxxxxx"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
                             >
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Email Pelari *</label>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Email Pelari *</label>
                             <input 
                                 type="email" 
                                 name="participants[${index}][email]" 
                                 id="email_${index}" 
                                 required 
                                 placeholder="pelari@example.com"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
                             >
                         </div>
                     </div>
@@ -631,49 +662,49 @@
                         <span class="text-xs font-bold text-slate-400 block mb-2 uppercase tracking-wider">Kontak Darurat Pelari Ini:</span>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Nama Kontak Darurat *</label>
+                                <label class="block text-xs sm:text-[11px] font-bold text-slate-300 mb-1.5">Nama Kontak Darurat *</label>
                                 <input 
                                     type="text" 
                                     name="participants[${index}][emergency_contact_name]" 
                                     id="emName_${index}" 
                                     required 
                                     placeholder="Keluarga / Kerabat"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2 text-base sm:text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
                                 >
                             </div>
 
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-300 mb-1">No. Telp Darurat *</label>
+                                <label class="block text-xs sm:text-[11px] font-bold text-slate-300 mb-1.5">No. Telp Darurat *</label>
                                 <input 
                                     type="tel" 
                                     name="participants[${index}][emergency_contact_phone]" 
                                     id="emPhone_${index}" 
                                     required 
                                     placeholder="08xxxxxxxx"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2 text-base sm:text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
                                 >
                             </div>
 
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Hubungan *</label>
+                                <label class="block text-xs sm:text-[11px] font-bold text-slate-300 mb-1.5">Hubungan *</label>
                                 <input 
                                     type="text" 
                                     name="participants[${index}][emergency_contact_relation]" 
                                     id="emRel_${index}" 
                                     required 
                                     placeholder="Orang Tua / Teman / Pasangan"
-                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2 text-base sm:text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
                                 >
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-300 mb-1">Riwayat Penyakit Khusus / Alergi Obat (Jika Ada)</label>
+                            <label class="block text-xs sm:text-[11px] font-bold text-slate-300 mb-1.5">Riwayat Penyakit Khusus / Alergi Obat (Jika Ada)</label>
                             <input 
                                 type="text" 
                                 name="participants[${index}][medical_conditions]" 
                                 placeholder="Contoh: Asma, alergi penisilin. Kosongkan jika sehat."
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2 text-base sm:text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
                             >
                         </div>
                     </div>
@@ -737,6 +768,15 @@
             runnerCountBadge.innerText = `${count} Pelari Terdaftar`;
             ticketCountSummary.innerText = `${count} Tiket Pelari`;
             submitBtnText.innerHTML = `LANJUT KE PEMBAYARAN TRIPAY (${count} TIKET) &rarr;`;
+
+            const stickyTicketCountBadge = document.getElementById('stickyTicketCountBadge');
+            if (stickyTicketCountBadge) {
+                stickyTicketCountBadge.innerText = `${count} TIKET`;
+            }
+            const stickySubmitBtnText = document.getElementById('stickySubmitBtnText');
+            if (stickySubmitBtnText) {
+                stickySubmitBtnText.innerHTML = `BAYAR (${count}) &rarr;`;
+            }
 
             const addBtn = document.getElementById('addRunnerBtn');
             if (count >= MAX_RUNNERS) {
@@ -809,14 +849,19 @@
 
             const platformFee = 5000;
             const grandTotal = sumPrice + platformFee;
-            grandTotalDisplay.innerText = 'Rp ' + grandTotal.toLocaleString('id-ID');
+            const formattedTotal = 'Rp ' + grandTotal.toLocaleString('id-ID');
+            grandTotalDisplay.innerText = formattedTotal;
+
+            const stickyGrandTotalDisplay = document.getElementById('stickyGrandTotalDisplay');
+            if (stickyGrandTotalDisplay) {
+                stickyGrandTotalDisplay.innerText = formattedTotal;
+            }
 
             // Render breakdown tags
             const breakdownHtml = Object.entries(categoryBreakdown).map(([name, qty]) => {
                 return `<span class="bg-slate-800 text-sky-300 px-2 py-0.5 rounded border border-slate-700 font-mono">${qty}x ${name}</span>`;
             }).join(' ');
 
-            categoryBreakdownDisplay.innerHTML = breakdownHtml;
         }
 
         // Payment Method selection badge update
@@ -901,6 +946,23 @@
         document.addEventListener('DOMContentLoaded', () => {
             addRunner();
             updateSelectedMethodBadge();
+
+            const stickyBtn = document.getElementById('stickySubmitBtn');
+            if (stickyBtn) {
+                stickyBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const form = document.getElementById('regForm');
+                    if (form) {
+                        if (typeof form.reportValidity === 'function') {
+                            if (form.reportValidity()) {
+                                form.submit();
+                            }
+                        } else {
+                            form.submit();
+                        }
+                    }
+                });
+            }
         });
     </script>
 </body>

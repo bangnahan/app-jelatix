@@ -49,53 +49,53 @@
 
         @if($order->isPaid())
             <!-- PAID SUCCESS CARD -->
-            <div class="bg-slate-900 border-2 border-emerald-500 rounded-3xl p-8 shadow-2xl text-center mb-8">
-                <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/40">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+            <div class="bg-slate-900 border-2 border-emerald-500 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl text-center mb-8">
+                <div class="w-14 h-14 sm:w-16 sm:h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/40">
+                    <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                 </div>
-                <h1 class="text-2xl font-black text-white mb-1">PEMBAYARAN LUNAS!</h1>
+                <h1 class="text-xl sm:text-2xl font-black text-white mb-1">PEMBAYARAN LUNAS!</h1>
                 <p class="text-xs text-slate-400 mb-6">Pendaftaran Anda untuk <strong>{{ $order->event?->title }}</strong> telah resmi terkonfirmasi.</p>
 
                 @foreach($order->participants as $p)
-                    <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 mb-6 text-center">
-                        <span class="text-xs text-emerald-400 font-bold uppercase tracking-widest block">Nomor Dada (BIB) Anda:</span>
-                        <span class="text-4xl font-extrabold text-white font-mono tracking-wider my-1 block">
+                    <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 mb-5 text-center">
+                        <span class="text-[11px] sm:text-xs text-emerald-400 font-bold uppercase tracking-widest block">Nomor Dada (BIB) Anda:</span>
+                        <span class="text-3xl sm:text-4xl font-extrabold text-white font-mono tracking-wider my-1 block break-all">
                             {{ $p->bib_number ?: 'SEDANG DI-GENERATE' }}
                         </span>
-                        <span class="text-xs font-semibold text-emerald-300 uppercase">{{ $p->bib_name ?: $p->full_name }}</span>
+                        <span class="text-xs font-semibold text-emerald-300 uppercase block truncate">{{ $p->bib_name ?: $p->full_name }}</span>
                     </div>
 
                     <a 
                         href="{{ route('public.ticket.download', $p->qr_token) }}" 
-                        class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 px-6 rounded-xl text-sm transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer"
+                        class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black py-3.5 sm:py-4 px-4 sm:px-6 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer mb-3"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         UNDUH E-TICKET RESMI (PDF)
                     </a>
                 @endforeach
 
-                <div class="mt-6 text-xs text-slate-500">
+                <div class="mt-5 text-xs text-slate-500">
                     E-Ticket juga telah dikirimkan ke email <strong>{{ $order->customer_email }}</strong>.
                 </div>
             </div>
         @else
             <!-- PENDING PAYMENT INVOICE -->
-            <div class="bg-slate-900 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl mb-8">
+            <div class="bg-slate-900 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl mb-8">
                 <!-- Status & Timer Banner -->
-                <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-5 sm:mb-6">
                     <div>
-                        <span class="text-[11px] text-slate-400 uppercase tracking-widest block">Batas Waktu Bayar</span>
-                        <span id="countdownTimer" class="text-lg font-black text-amber-400 font-mono">30:00</span>
+                        <span class="text-[10px] sm:text-[11px] text-slate-400 uppercase tracking-widest block">Batas Waktu Bayar</span>
+                        <span id="countdownTimer" class="text-base sm:text-lg font-black text-amber-400 font-mono">30:00</span>
                     </div>
-                    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    <span class="px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
                         Menunggu Pembayaran
                     </span>
                 </div>
 
                 <!-- Total Amount -->
-                <div class="text-center mb-6">
+                <div class="text-center mb-5 sm:mb-6">
                     <span class="text-xs text-slate-400 uppercase tracking-wider block">Total yang Harus Dibayar</span>
-                    <div class="text-3xl sm:text-4xl font-black text-sky-400 font-mono my-1">
+                    <div class="text-2xl sm:text-4xl font-black text-sky-400 font-mono my-1">
                         Rp {{ number_format($order->grand_total, 0, ',', '.') }}
                     </div>
                     <span class="text-xs text-slate-400">Metode: <strong class="text-white">{{ $order->tripay_payment_method }}</strong></span>
@@ -103,12 +103,12 @@
 
                 <!-- Payment Details Card (QRIS vs VA vs Minimarket vs E-Wallet/Paylater) -->
                 @if(str_starts_with($order->tripay_payment_method, 'QRIS') && $order->tripay_qr_url)
-                    <div class="bg-white rounded-2xl p-6 text-slate-950 text-center mb-6 shadow-xl">
-                        <img src="{{ $order->tripay_qr_url }}" alt="QRIS Code" class="w-64 h-64 mx-auto rounded-lg mb-2">
-                        <p class="text-xs text-slate-600 font-semibold mb-2">
+                    <div class="bg-white rounded-2xl p-4 sm:p-6 text-slate-950 text-center mb-5 sm:mb-6 shadow-xl">
+                        <img src="{{ $order->tripay_qr_url }}" alt="QRIS Code" class="max-w-[220px] sm:max-w-[260px] w-full aspect-square mx-auto rounded-lg mb-3 object-contain">
+                        <p class="text-xs text-slate-600 font-semibold mb-2 leading-relaxed">
                             Scan kode QRIS di atas menggunakan BCA Mobile, BRImo, Livin Mandiri, GoPay, OVO, DANA, ShopeePay, atau LinkAja.
                         </p>
-                        <a href="{{ $order->tripay_qr_url }}" target="_blank" download="QRIS-{{ $order->order_code }}.png" class="inline-block text-[11px] text-sky-600 hover:text-sky-700 font-bold underline">
+                        <a href="{{ $order->tripay_qr_url }}" target="_blank" download="QRIS-{{ $order->order_code }}.png" class="inline-block text-xs text-sky-600 hover:text-sky-700 font-bold underline py-1">
                             Buka Gambar QR Ukuran Penuh
                         </a>
                     </div>
@@ -118,8 +118,8 @@
                         $isEwallet = in_array($order->tripay_payment_method, ['OVO', 'DANA', 'SHOPEEPAY']);
                         $isPaylater = in_array($order->tripay_payment_method, ['KREDIVO', 'AKULAKU']);
                     @endphp
-                    <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 text-center mb-6">
-                        <span class="text-xs text-slate-400 uppercase tracking-wider block">
+                    <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 sm:p-6 text-center mb-5 sm:mb-6">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider block mb-1">
                             @if($isRetail)
                                 Kode Pembayaran Kasir ({{ $order->tripay_payment_method }})
                             @elseif($isEwallet)
@@ -130,13 +130,18 @@
                                 Nomor Virtual Account ({{ $order->tripay_payment_method }})
                             @endif
                         </span>
-                        <div class="text-2xl sm:text-3xl font-black text-white font-mono my-2 flex items-center justify-center gap-3">
-                            <span id="vaCode">{{ $order->tripay_pay_code }}</span>
-                            <button type="button" onclick="navigator.clipboard.writeText('{{ $order->tripay_pay_code }}'); alert('Kode pembayaran berhasil disalin!')" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs text-sky-300 cursor-pointer">
-                                Salin
+                        <div class="my-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
+                            <span id="vaCode" class="text-xl sm:text-2xl font-black text-white font-mono tracking-wider break-all select-all">{{ $order->tripay_pay_code }}</span>
+                            <button 
+                                type="button" 
+                                id="copyVaBtn"
+                                onclick="copyVaCode()" 
+                                class="px-3.5 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold transition active:scale-95 cursor-pointer shrink-0 flex items-center gap-1"
+                            >
+                                📋 <span id="copyVaBtnText">Salin</span>
                             </button>
                         </div>
-                        <p class="text-xs text-slate-400">
+                        <p class="text-xs text-slate-400 leading-relaxed">
                             @if($isRetail)
                                 Sebutkan pembayaran "Tripay" kepada kasir minimarket dan tunjukkan kode pembayaran di atas.
                             @elseif($isEwallet)
@@ -258,6 +263,24 @@
                 }
             } catch (e) {}
         }, 6000);
+
+        function copyVaCode() {
+            const el = document.getElementById('vaCode');
+            const code = el ? el.innerText.trim() : '{{ $order->tripay_pay_code }}';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(() => {
+                    const btnText = document.getElementById('copyVaBtnText');
+                    if (btnText) {
+                        btnText.innerText = 'Tersalin!';
+                        setTimeout(() => { btnText.innerText = 'Salin'; }, 2000);
+                    }
+                }).catch(() => {
+                    prompt('Salin nomor ini:', code);
+                });
+            } else {
+                prompt('Salin nomor ini:', code);
+            }
+        }
     </script>
     @endif
 </body>

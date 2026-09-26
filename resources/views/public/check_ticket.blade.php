@@ -71,7 +71,7 @@
         @endif
 
         <!-- Search Box -->
-        <div class="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-4 sm:p-6 shadow-2xl mb-10">
+        <div class="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-4 sm:p-6 shadow-2xl mb-8 sm:mb-10">
             <form action="{{ route('public.ticket.search') }}" method="POST" class="flex flex-col sm:flex-row gap-3">
                 @csrf
                 <div class="relative flex-1">
@@ -80,16 +80,16 @@
                         name="query" 
                         value="{{ $search ?? '' }}" 
                         required 
-                        placeholder="Contoh: JLTX-2026-0012, 357801..., atau budi@gmail.com"
-                        class="w-full bg-slate-900/80 border border-slate-700/80 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 text-sm outline-none transition"
+                        placeholder="Kode Order, 16-digit NIK, atau Email..."
+                        class="w-full bg-slate-900/80 border border-slate-700/80 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30 rounded-xl px-4 py-3 sm:py-3.5 text-white placeholder-slate-500 text-base sm:text-sm outline-none transition"
                     >
                 </div>
                 <button 
                     type="submit" 
-                    class="bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold px-6 py-3.5 rounded-xl text-sm transition shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 cursor-pointer"
+                    class="bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 text-slate-950 font-black px-6 py-3.5 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 cursor-pointer shrink-0"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    Cari Tiket Saya
+                    <span>Cari Tiket Saya</span>
                 </button>
             </form>
         </div>
@@ -97,44 +97,44 @@
         <!-- Search Results -->
         @if(isset($searched))
             @if(count($participants) > 0)
-                <div class="space-y-6">
-                    <h2 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+                <div class="space-y-4 sm:space-y-6">
+                    <h2 class="text-base sm:text-lg font-bold text-slate-200 flex items-center gap-2">
                         <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
                         Ditemukan {{ count($participants) }} Tiket Terdaftar & Lunas
                     </h2>
 
                     @foreach($participants as $p)
-                        <div class="bg-slate-900/90 border border-white/10 rounded-2xl p-6 shadow-xl relative overflow-hidden transition hover:border-sky-500/50">
-                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div class="bg-slate-900/90 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl relative overflow-hidden transition hover:border-sky-500/50">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
                                 <div>
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                    <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                                             LUNAS / TERDAFTAR
                                         </span>
                                         @if($p->is_vip)
-                                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                            <span class="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
                                                 VVIP RUNNER
                                             </span>
                                         @endif
-                                        <span class="text-xs text-slate-400">Order: {{ $p->order?->order_code }}</span>
+                                        <span class="text-xs text-slate-400 font-mono">Order: {{ $p->order?->order_code }}</span>
                                     </div>
-                                    <h3 class="text-xl font-bold text-white mb-1">{{ $p->event?->title }}</h3>
-                                    <p class="text-sm text-slate-400 mb-3">
+                                    <h3 class="text-lg sm:text-xl font-bold text-white mb-1">{{ $p->event?->title }}</h3>
+                                    <p class="text-xs sm:text-sm text-slate-400 mb-3">
                                         Kategori: <strong class="text-sky-300">{{ $p->category?->name }} ({{ $p->category?->distance_km }} KM)</strong> 
                                         &bull; Tanggal: {{ $p->event?->event_start_date?->format('d M Y') }}
                                     </p>
 
-                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-white/5 p-3 rounded-xl border border-white/5">
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs bg-white/5 p-3 rounded-xl border border-white/5">
                                         <div>
-                                            <span class="text-slate-400 block">Nama Pelari:</span>
+                                            <span class="text-slate-400 block text-[11px]">Nama Pelari:</span>
                                             <span class="font-semibold text-white">{{ $p->full_name }}</span>
                                         </div>
                                         <div>
-                                            <span class="text-slate-400 block">Jersey:</span>
+                                            <span class="text-slate-400 block text-[11px]">Jersey:</span>
                                             <span class="font-semibold text-white">{{ $p->jerseySize ? $p->jerseySize->size_name . ' (' . ucfirst($p->jerseySize->gender_type) . ')' : '-' }}</span>
                                         </div>
                                         <div>
-                                            <span class="text-slate-400 block">Status RPC:</span>
+                                            <span class="text-slate-400 block text-[11px]">Status RPC:</span>
                                             <span class="font-semibold {{ $p->is_rpc_claimed ? 'text-emerald-400' : 'text-amber-400' }}">
                                                 {{ $p->is_rpc_claimed ? 'Sudah Diambil' : 'Belum Diambil' }}
                                             </span>
@@ -144,9 +144,9 @@
 
                                 <!-- BIB & Action -->
                                 <div class="flex flex-col sm:flex-row md:flex-col items-center md:items-end justify-between gap-4 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6 min-w-[200px]">
-                                    <div class="text-center md:text-right">
-                                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block">Nomor BIB</span>
-                                        <span class="text-3xl font-extrabold text-sky-400 font-mono tracking-wider block">
+                                    <div class="text-center md:text-right w-full sm:w-auto">
+                                        <span class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-widest block">Nomor BIB</span>
+                                        <span class="text-2xl sm:text-3xl font-extrabold text-sky-400 font-mono tracking-wider block">
                                             {{ $p->bib_number ?: 'PROSES' }}
                                         </span>
                                         <span class="text-xs text-slate-300 font-medium uppercase">{{ $p->bib_name ?: $p->full_name }}</span>
@@ -154,10 +154,10 @@
 
                                     <a 
                                         href="{{ route('public.ticket.download', $p->qr_token) }}" 
-                                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-md"
+                                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-400 active:scale-95 text-slate-950 font-black px-4 py-3 sm:py-2.5 rounded-xl text-xs sm:text-sm transition shadow-md shrink-0"
                                     >
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                        Unduh E-Ticket (PDF)
+                                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                        <span>Unduh E-Ticket (PDF)</span>
                                     </a>
                                 </div>
                             </div>
