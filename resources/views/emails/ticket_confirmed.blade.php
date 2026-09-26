@@ -47,11 +47,17 @@
                 </tr>
             </table>
 
-            <p style="margin-top: 20px;">
-                E-Ticket resmi Anda terlampir pada email ini dalam format PDF lengkap dengan QR Code untuk penukaran <strong>Race Pack Collection (RPC)</strong>.
+            <div style="text-align: center; margin: 28px 0;">
+                <a href="{{ route('public.ticket.download', $participant->qr_token) }}" style="background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);">
+                    📥 Unduh E-Ticket Resmi (PDF)
+                </a>
+            </div>
+
+            <p style="margin-top: 20px; font-size: 13px; color: #64748b;">
+                E-Ticket resmi Anda juga telah dilampirkan pada email ini dalam format PDF lengkap dengan barcode QR Code untuk penukaran <strong>Race Pack Collection (RPC)</strong>.
             </p>
-            <p>
-                Anda juga dapat mengunduh tiket sewaktu-waktu di website resmi Jelatix melalui menu <strong>Cek Tiket</strong> menggunakan NIK atau Email Anda.
+            <p style="font-size: 13px; color: #64748b;">
+                Anda juga dapat mencari dan mengunduh tiket sewaktu-waktu di website resmi Jelatix melalui menu <strong>Cek Tiket</strong> menggunakan NIK atau Email Anda.
             </p>
         </div>
         <div class="footer">

@@ -43,13 +43,16 @@ class SendTicketEmailJob implements ShouldQueue
                     'order' => $order,
                 ])->render();
 
+                $downloadUrl = route('public.ticket.download', $participant->qr_token);
+
                 $mailketing->sendEmail(
                     recipientEmail: $participant->email,
                     recipientName: $participant->full_name,
                     subject: $subject,
                     htmlContent: $htmlContent,
                     attachmentBase64: $pdfBase64,
-                    attachmentName: "E-Ticket-{$participant->bib_number}.pdf"
+                    attachmentName: "E-Ticket-{$participant->bib_number}.pdf",
+                    attachmentUrl: $downloadUrl
                 );
             } catch (Exception $e) {
                 Log::error("Failed to send ticket email to participant #{$participant->id}: " . $e->getMessage());

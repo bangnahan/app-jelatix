@@ -461,5 +461,33 @@ class JelatixRunningEventTest extends TestCase
         }
         $this->assertNotEquals($participants[0]->bib_number, $participants[1]->bib_number);
     }
+
+    public function test_mailketing_service_sends_email_with_configured_credentials(): void
+    {
+        \Illuminate\Support\Facades\Http::fake([
+            'api.mailketing.co.id/*' => \Illuminate\Support\Facades\Http::response(['status' => 'success'], 200),
+        ]);
+
+        $mailketing = new \App\Services\MailketingService();
+        $result = $mailketing->sendEmail(
+            recipientEmail: 'runner@jelatix.com',
+            recipientName: 'Budi Runner',
+            subject: 'Tiket Lari Anda',
+            htmlContent: '<h1>Halo Budi</h1>',
+            attachmentUrl: 'https://jelatix.com/ticket/download'
+        );
+
+        $this->assertTrue($result);
+
+        \Illuminate\Support\Facades\Http::assertSent(function ($request) {
+            return $request->url() === 'https://api.mailketing.co.id/api/v1/send'
+                && $request['from_email'] === 'hi@jelatix.com'
+                && $request['recipient'] === 'runner@jelatix.com'
+                && $request['subject'] === 'Tiket Lari Anda'
+                && $request['api_token'] === '308b31d3313311776744479fa8fd7eb3'
+                && $request['attach1'] === 'https://jelatix.com/ticket/download';
+        });
+    }
 }
+
 

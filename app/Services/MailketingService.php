@@ -30,7 +30,8 @@ class MailketingService
         string $subject,
         string $htmlContent,
         ?string $attachmentBase64 = null,
-        ?string $attachmentName = null
+        ?string $attachmentName = null,
+        ?string $attachmentUrl = null
     ): bool {
         // Jika token belum diset di .env, log konten dan return true (agar tidak crash saat dev lokal)
         if (empty($this->apiToken)) {
@@ -49,15 +50,18 @@ class MailketingService
                 'content' => $htmlContent,
             ];
 
-            if ($attachmentBase64 && $attachmentName) {
+            if ($attachmentUrl) {
+                $payload['attach1'] = $attachmentUrl;
+            } elseif ($attachmentBase64 && $attachmentName) {
                 $payload['attachment'] = $attachmentBase64;
                 $payload['attachment_name'] = $attachmentName;
             }
 
-            $response = Http::post("{$this->apiUrl}/send", $payload);
+            // Mailketing API v1 menerima x-www-form-urlencoded
+            $response = Http::asForm()->timeout(15)->post("{$this->apiUrl}/send", $payload);
 
             if ($response->successful()) {
-                Log::info("Mailketing sent successfully to {$recipientEmail}");
+                Log::info("Mailketing sent successfully to {$recipientEmail}: " . $response->body());
                 return true;
             }
 
