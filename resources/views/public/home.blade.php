@@ -141,9 +141,8 @@
                         </div>
 
                         <div class="p-6 pt-0">
-                            <a href="/cek-tiket" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-sky-500/20">
-                                <span>Cek Pendaftaran / Status BIB</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            <a href="{{ route('public.register.show', $event->slug) }}" class="w-full bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-300 hover:to-sky-400 text-slate-950 font-black py-3.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-sky-500/25">
+                                <span>Daftar Lomba Lari Sekarang &rarr;</span>
                             </a>
                         </div>
                     </div>

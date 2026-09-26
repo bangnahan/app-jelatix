@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CrewScannerController;
+use App\Http\Controllers\PublicRegistrationController;
 use App\Http\Controllers\PublicTicketController;
 use App\Models\Event;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +14,13 @@ Route::get('/', function () {
 
     return view('public.home', compact('events'));
 })->name('home');
+
+// Pendaftaran Lomba Lari & Checkout Tripay
+Route::get('/events/{slug}/register', [PublicRegistrationController::class, 'show'])->name('public.register.show');
+Route::post('/events/{slug}/checkout', [PublicRegistrationController::class, 'checkout'])->name('public.register.checkout');
+Route::get('/orders/{order_code}', [PublicRegistrationController::class, 'showInvoice'])->name('public.order.show');
+Route::get('/orders/{order_code}/status', [PublicRegistrationController::class, 'checkStatus'])->name('public.order.status');
+Route::post('/orders/{order_code}/simulate', [PublicRegistrationController::class, 'simulatePay'])->name('public.order.simulate');
 
 // Fitur Mandiri Pelari: Cek Tiket & Unduh E-Ticket
 Route::get('/cek-tiket', [PublicTicketController::class, 'index'])->name('public.ticket.index');

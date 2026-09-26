@@ -301,4 +301,56 @@ class JelatixRunningEventTest extends TestCase
         $this->assertEquals('Kawan Satu Komunitas', $fresh->proxy_collector_name);
         $this->assertEquals('3578022222220002', $fresh->proxy_collector_id_number);
     }
+
+    public function test_public_runner_can_register_and_checkout_to_tripay(): void
+    {
+        $jersey = \App\Models\JerseySize::create([
+            'event_id' => $this->event->id,
+            'size_name' => 'L',
+            'gender_type' => 'unisex',
+            'stock' => 50,
+            'allocated_stock' => 0,
+        ]);
+
+        $payload = [
+            'category_id' => $this->category->id,
+            'jersey_size_id' => $jersey->id,
+            'full_name' => 'Fajar Pratama',
+            'bib_name' => 'FAJAR P',
+            'id_type' => 'KTP',
+            'id_number' => '3271012345670001',
+            'gender' => 'male',
+            'birth_date' => '1994-08-17',
+            'blood_type' => 'B+',
+            'phone' => '081288887777',
+            'email' => 'fajar@running.id',
+            'emergency_contact_name' => 'Ratna',
+            'emergency_contact_phone' => '081288887778',
+            'emergency_contact_relation' => 'Istri',
+            'payment_method' => 'QRIS',
+            'waiver_accepted' => '1',
+        ];
+
+        $checkoutRes = $this->post("/events/{$this->event->slug}/checkout", $payload);
+
+        $order = Order::where('customer_email', 'fajar@running.id')->first();
+        $this->assertNotNull($order);
+        $this->assertEquals('pending', $order->status);
+
+        $checkoutRes->assertRedirect(route('public.order.show', $order->order_code));
+
+        // Test Invoice View
+        $invoiceRes = $this->get("/orders/{$order->order_code}");
+        $invoiceRes->assertStatus(200);
+        $invoiceRes->assertSee('Fajar Pratama');
+        $invoiceRes->assertSee('Menunggu Pembayaran');
+
+        // Test Sandbox Simulate Payment
+        $simulateRes = $this->post("/orders/{$order->order_code}/simulate");
+        $simulateRes->assertRedirect(route('public.order.show', $order->order_code));
+
+        $paidOrder = $order->fresh();
+        $this->assertEquals('paid', $paidOrder->status);
+        $this->assertNotNull($paidOrder->participants->first()->bib_number);
+    }
 }
