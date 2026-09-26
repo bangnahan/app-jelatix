@@ -46,85 +46,71 @@ class PublicRegistrationController extends Controller
     {
         $event = Event::where('slug', $slug)->firstOrFail();
 
-        $request->validate([
-            'category_id' => 'required|exists:event_categories,id',
-            'jersey_size_id' => 'required|exists:jersey_sizes,id',
-            'full_name' => 'required|string|max:100',
-            'bib_name' => 'nullable|string|max:14',
-            'id_type' => 'required|in:KTP,SIM,Passport,KIA',
-            'id_number' => 'required|string|max:30',
-            'gender' => 'required|in:male,female',
-            'birth_date' => 'required|date',
-            'blood_type' => 'required|string',
-            'phone' => 'required|string|max:20',
-            'email' => 'required|email|max:100',
-            'emergency_contact_name' => 'required|string|max:100',
-            'emergency_contact_phone' => 'required|string|max:20',
-            'emergency_contact_relation' => 'required|string|max:50',
-            'payment_method' => 'required|string',
-            'waiver_accepted' => 'accepted',
-            'estimated_finish_time' => 'nullable|string',
-            'custom_fields' => 'nullable|array',
-        ]);
+        // Cek apakah payload bertipe multi-peserta (array `participants`) atau single-peserta
+        if ($request->has('participants') && is_array($request->input('participants'))) {
+            $request->validate([
+                'buyer_name' => 'required|string|max:100',
+                'buyer_email' => 'required|email|max:100',
+                'buyer_phone' => 'required|string|max:20',
+                'payment_method' => 'required|string',
+                'waiver_accepted' => 'accepted',
+                'participants' => 'required|array|min:1|max:10',
+                'participants.*.category_id' => 'required|exists:event_categories,id',
+                'participants.*.jersey_size_id' => 'required|exists:jersey_sizes,id',
+                'participants.*.full_name' => 'required|string|max:100',
+                'participants.*.bib_name' => 'nullable|string|max:14',
+                'participants.*.id_type' => 'required|in:KTP,SIM,Passport,KIA',
+                'participants.*.id_number' => 'required|string|max:30',
+                'participants.*.gender' => 'required|in:male,female',
+                'participants.*.birth_date' => 'required|date',
+                'participants.*.blood_type' => 'required|string',
+                'participants.*.phone' => 'required|string|max:20',
+                'participants.*.email' => 'required|email|max:100',
+                'participants.*.emergency_contact_name' => 'required|string|max:100',
+                'participants.*.emergency_contact_phone' => 'required|string|max:20',
+                'participants.*.emergency_contact_relation' => 'required|string|max:50',
+                'participants.*.medical_conditions' => 'nullable|string',
+                'participants.*.estimated_finish_time' => 'nullable|string',
+                'participants.*.custom_fields' => 'nullable|array',
+            ]);
 
-        try {
-            $order = DB::transaction(function () use ($request, $event) {
-                // Kunci kuota kategori lari (Pessimistic Locking)
-                $category = EventCategory::where('id', $request->input('category_id'))
-                    ->where('event_id', $event->id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
+            $buyerName = $request->input('buyer_name');
+            $buyerEmail = $request->input('buyer_email');
+            $buyerPhone = $request->input('buyer_phone');
+            $participantsData = $request->input('participants');
+        } else {
+            // Fallback untuk single-participant (backward compatibility)
+            $request->validate([
+                'category_id' => 'required|exists:event_categories,id',
+                'jersey_size_id' => 'required|exists:jersey_sizes,id',
+                'full_name' => 'required|string|max:100',
+                'bib_name' => 'nullable|string|max:14',
+                'id_type' => 'required|in:KTP,SIM,Passport,KIA',
+                'id_number' => 'required|string|max:30',
+                'gender' => 'required|in:male,female',
+                'birth_date' => 'required|date',
+                'blood_type' => 'required|string',
+                'phone' => 'required|string|max:20',
+                'email' => 'required|email|max:100',
+                'emergency_contact_name' => 'required|string|max:100',
+                'emergency_contact_phone' => 'required|string|max:20',
+                'emergency_contact_relation' => 'required|string|max:50',
+                'payment_method' => 'required|string',
+                'waiver_accepted' => 'accepted',
+                'medical_conditions' => 'nullable|string',
+                'estimated_finish_time' => 'nullable|string',
+                'custom_fields' => 'nullable|array',
+            ]);
 
-                if ($category->slots_taken >= $category->quota) {
-                    throw new Exception("Mohon maaf, kuota untuk kategori {$category->name} telah habis!");
-                }
-
-                // Kunci stok ukuran jersey
-                $jersey = JerseySize::where('id', $request->input('jersey_size_id'))
-                    ->where('event_id', $event->id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
-                if ($jersey->allocated_stock >= $jersey->stock) {
-                    throw new Exception("Mohon maaf, stok untuk ukuran jersey {$jersey->size_name} telah habis!");
-                }
-
-                // Alokasikan slot & stok jersey
-                $category->increment('slots_taken', 1);
-                $jersey->increment('allocated_stock', 1);
-
-                $unitPrice = $category->getCurrentPrice();
-                $platformFee = 5000; // Platform fee Jelatix
-                $grandTotal = $unitPrice + $platformFee;
-
-                $orderCode = 'JLTX-' . date('Ymd') . '-' . strtoupper(Str::random(5));
-
-                $order = Order::create([
-                    'event_id' => $event->id,
-                    'order_code' => $orderCode,
-                    'customer_name' => $request->input('full_name'),
-                    'customer_email' => $request->input('email'),
-                    'customer_phone' => $request->input('phone'),
-                    'subtotal' => $unitPrice,
-                    'platform_fee' => $platformFee,
-                    'grand_total' => $grandTotal,
-                    'status' => 'pending',
-                ]);
-
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'event_category_id' => $category->id,
-                    'quantity' => 1,
-                    'unit_price' => $unitPrice,
-                    'total_price' => $unitPrice,
-                ]);
-
-                Participant::create([
-                    'order_id' => $order->id,
-                    'event_category_id' => $category->id,
-                    'jersey_size_id' => $jersey->id,
+            $buyerName = $request->input('full_name');
+            $buyerEmail = $request->input('email');
+            $buyerPhone = $request->input('phone');
+            $participantsData = [
+                [
+                    'category_id' => $request->input('category_id'),
+                    'jersey_size_id' => $request->input('jersey_size_id'),
                     'full_name' => $request->input('full_name'),
-                    'bib_name' => strtoupper($request->input('bib_name') ?: $request->input('full_name')),
+                    'bib_name' => $request->input('bib_name'),
                     'id_type' => $request->input('id_type'),
                     'id_number' => $request->input('id_number'),
                     'gender' => $request->input('gender'),
@@ -137,11 +123,115 @@ class PublicRegistrationController extends Controller
                     'emergency_contact_relation' => $request->input('emergency_contact_relation'),
                     'medical_conditions' => $request->input('medical_conditions'),
                     'estimated_finish_time' => $request->input('estimated_finish_time'),
-                    'custom_fields_data' => $request->input('custom_fields'),
-                    'waiver_accepted' => true,
-                    'waiver_accepted_at' => now(),
-                    'waiver_ip_address' => $request->ip(),
+                    'custom_fields' => $request->input('custom_fields'),
+                ]
+            ];
+        }
+
+        try {
+            $order = DB::transaction(function () use ($request, $event, $buyerName, $buyerEmail, $buyerPhone, $participantsData) {
+                // 1. Kunci dan validasi kuota per kategori lari
+                $categoryCounts = [];
+                foreach ($participantsData as $p) {
+                    $catId = (int) $p['category_id'];
+                    $categoryCounts[$catId] = ($categoryCounts[$catId] ?? 0) + 1;
+                }
+
+                $categoryModels = [];
+                $totalTicketsPrice = 0;
+
+                foreach ($categoryCounts as $catId => $qtyNeeded) {
+                    $category = EventCategory::where('id', $catId)
+                        ->where('event_id', $event->id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
+
+                    if (($category->slots_taken + $qtyNeeded) > $category->quota) {
+                        $available = max(0, $category->quota - $category->slots_taken);
+                        throw new Exception("Mohon maaf, sisa kuota kategori {$category->name} tersisa {$available} slot (Anda memesan {$qtyNeeded} slot).");
+                    }
+
+                    $category->increment('slots_taken', $qtyNeeded);
+                    $categoryModels[$catId] = $category;
+                    $totalTicketsPrice += ($category->getCurrentPrice() * $qtyNeeded);
+                }
+
+                // 2. Kunci dan validasi stok jersey
+                $jerseyCounts = [];
+                foreach ($participantsData as $p) {
+                    $jerseyId = (int) $p['jersey_size_id'];
+                    $jerseyCounts[$jerseyId] = ($jerseyCounts[$jerseyId] ?? 0) + 1;
+                }
+
+                foreach ($jerseyCounts as $jerseyId => $qtyNeeded) {
+                    $jersey = JerseySize::where('id', $jerseyId)
+                        ->where('event_id', $event->id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
+
+                    if (($jersey->allocated_stock + $qtyNeeded) > $jersey->stock) {
+                        $available = max(0, $jersey->stock - $jersey->allocated_stock);
+                        throw new Exception("Mohon maaf, sisa stok ukuran kaos {$jersey->size_name} tersisa {$available} pcs (Anda memilih {$qtyNeeded} pcs).");
+                    }
+
+                    $jersey->increment('allocated_stock', $qtyNeeded);
+                }
+
+                $platformFee = 5000;
+                $grandTotal = $totalTicketsPrice + $platformFee;
+                $orderCode = 'JLTX-' . date('Ymd') . '-' . strtoupper(Str::random(5));
+
+                $order = Order::create([
+                    'event_id' => $event->id,
+                    'order_code' => $orderCode,
+                    'customer_name' => $buyerName,
+                    'customer_email' => $buyerEmail,
+                    'customer_phone' => $buyerPhone,
+                    'subtotal' => $totalTicketsPrice,
+                    'platform_fee' => $platformFee,
+                    'grand_total' => $grandTotal,
+                    'status' => 'pending',
                 ]);
+
+                // 3. Buat OrderItem per kategori
+                foreach ($categoryCounts as $catId => $qty) {
+                    $cat = $categoryModels[$catId];
+                    $price = $cat->getCurrentPrice();
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'event_category_id' => $cat->id,
+                        'quantity' => $qty,
+                        'unit_price' => $price,
+                        'total_price' => $price * $qty,
+                    ]);
+                }
+
+                // 4. Buat data Participant per pelari
+                foreach ($participantsData as $pData) {
+                    Participant::create([
+                        'order_id' => $order->id,
+                        'event_category_id' => (int) $pData['category_id'],
+                        'jersey_size_id' => (int) $pData['jersey_size_id'],
+                        'full_name' => $pData['full_name'],
+                        'bib_name' => strtoupper($pData['bib_name'] ?: $pData['full_name']),
+                        'id_type' => $pData['id_type'],
+                        'id_number' => $pData['id_number'],
+                        'gender' => $pData['gender'],
+                        'birth_date' => $pData['birth_date'],
+                        'blood_type' => $pData['blood_type'],
+                        'phone' => $pData['phone'],
+                        'email' => $pData['email'],
+                        'emergency_contact_name' => $pData['emergency_contact_name'],
+                        'emergency_contact_phone' => $pData['emergency_contact_phone'],
+                        'emergency_contact_relation' => $pData['emergency_contact_relation'],
+                        'medical_conditions' => $pData['medical_conditions'] ?? null,
+                        'estimated_finish_time' => $pData['estimated_finish_time'] ?? null,
+                        'custom_fields_data' => $pData['custom_fields'] ?? null,
+                        'waiver_accepted' => true,
+                        'waiver_accepted_at' => now(),
+                        'waiver_ip_address' => $request->ip(),
+                    ]);
+                }
 
                 return $order;
             });

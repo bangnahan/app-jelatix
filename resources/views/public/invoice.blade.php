@@ -164,20 +164,33 @@
                         <span class="text-slate-400">Event Lari:</span>
                         <span class="font-bold text-white">{{ $order->event?->title }}</span>
                     </div>
-                    @foreach($order->participants as $p)
-                        <div class="flex justify-between">
-                            <span class="text-slate-400">Nama Pelari:</span>
-                            <span class="font-semibold text-white">{{ $p->full_name }}</span>
+                    <div class="border-t border-slate-800 pt-3 mt-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Daftar Pelari Terdaftar:</span>
+                            <span class="text-[10px] font-mono text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+                                {{ $order->participants->count() }} Orang
+                            </span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-400">Kategori:</span>
-                            <span class="font-semibold text-sky-400">{{ $p->category?->name }}</span>
+                        <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            @foreach($order->participants as $idx => $p)
+                                <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between">
+                                    <div class="min-w-0 pr-2">
+                                        <div class="font-bold text-white text-xs flex items-center gap-1.5 truncate">
+                                            <span class="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 text-[10px] flex items-center justify-center font-mono shrink-0">{{ $idx + 1 }}</span>
+                                            <span class="truncate">{{ $p->full_name }}</span>
+                                        </div>
+                                        <div class="text-[10px] text-slate-400 mt-0.5">
+                                            BIB: <strong class="text-sky-300 font-mono uppercase">{{ $p->bib_name ?: $p->full_name }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <span class="text-xs font-bold text-sky-400 block font-mono">{{ $p->category?->name }}</span>
+                                        <span class="text-[10px] text-slate-400">Jersey: {{ $p->jerseySize?->size_name }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-400">Jersey:</span>
-                            <span class="font-semibold text-white">{{ $p->jerseySize?->size_name }} ({{ ucfirst($p->jerseySize?->gender_type ?? 'Unisex') }})</span>
-                        </div>
-                    @endforeach
+                    </div>
                 </div>
 
                 <!-- Action Button & Polling -->

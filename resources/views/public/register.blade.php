@@ -82,313 +82,97 @@
         <form action="{{ route('public.register.checkout', $event->slug) }}" method="POST" id="regForm">
             @csrf
 
-            <!-- 1. Pilih Kategori Lari -->
-            <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
-                <h2 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">1</span>
-                    Pilih Kategori Lomba Lari
-                </h2>
-                <p class="text-xs text-slate-400 mb-6">Pilih jarak yang ingin Anda ikuti.</p>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    @foreach($event->categories as $cat)
-                        <label class="relative flex flex-col justify-between border-2 border-slate-700/80 hover:border-sky-500/60 rounded-xl p-5 cursor-pointer transition bg-slate-800/40 has-[:checked]:border-sky-500 has-[:checked]:bg-sky-500/10">
-                            <input 
-                                type="radio" 
-                                name="category_id" 
-                                value="{{ $cat->id }}" 
-                                required 
-                                {{ old('category_id') == $cat->id || $loop->first ? 'checked' : '' }} 
-                                class="sr-only category-radio" 
-                                data-price="{{ $cat->getCurrentPrice() }}"
-                                data-name="{{ $cat->name }}"
-                            >
-                            <div>
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="font-extrabold text-white text-base">{{ $cat->name }}</span>
-                                    <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-mono">
-                                        {{ $cat->distance_km }} KM
-                                    </span>
-                                </div>
-                                <div class="text-xs text-slate-400 mb-3">
-                                    Cut Off Time: {{ $cat->cut_off_time_minutes ? $cat->cut_off_time_minutes . ' Menit' : 'Tidak Ada' }}
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between border-t border-slate-700/60 pt-3">
-                                <span class="text-xs text-slate-400">Sisa Kuota: {{ $cat->available_slots }} slot</span>
-                                <span class="text-lg font-black text-sky-400 font-mono">
-                                    Rp {{ number_format($cat->getCurrentPrice(), 0, ',', '.') }}
-                                </span>
-                            </div>
-                        </label>
-                    @endforeach
-                </div>
-            </section>
-
-            <!-- 2. Pilih Ukuran Jersey -->
+            <!-- 1. Data Pemesan (Penanggung Jawab / PIC) -->
             <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
                 <div class="flex items-center justify-between mb-1">
                     <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                        <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">2</span>
-                        Pilih Ukuran Jersey Lomba (Race Tee)
+                        <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">1</span>
+                        Data Pemesan (Penanggung Jawab Pembelian / PIC)
                     </h2>
-                    <button type="button" onclick="document.getElementById('sizeChartModal').classList.remove('hidden')" class="text-xs text-sky-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Lihat Size Chart (cm)
-                    </button>
+                    <span class="text-[11px] text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20 font-mono">
+                        PIC Utama
+                    </span>
                 </div>
-                <p class="text-xs text-slate-400 mb-6">Ukuran bersifat final dan tidak dapat ditukar saat pengambilan race pack.</p>
+                <p class="text-xs text-slate-400 mb-6">
+                    Invoice pembayaran Tripay dan seluruh arsip E-Ticket akan dikirimkan ke kontak pemesan ini.
+                </p>
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    @foreach($event->jerseySizes as $j)
-                        <label class="border-2 border-slate-700/80 hover:border-amber-500/60 rounded-xl p-3 text-center cursor-pointer transition bg-slate-800/40 has-[:checked]:border-amber-400 has-[:checked]:bg-amber-400/10">
-                            <input 
-                                type="radio" 
-                                name="jersey_size_id" 
-                                value="{{ $j->id }}" 
-                                required 
-                                {{ old('jersey_size_id') == $j->id || $loop->first ? 'checked' : '' }} 
-                                class="sr-only"
-                            >
-                            <span class="text-xl font-black text-white block mb-0.5 font-mono">{{ $j->size_name }}</span>
-                            <span class="text-[11px] text-slate-400 block">{{ ucfirst($j->gender_type) }}</span>
-                            <span class="text-[10px] text-slate-500 block mt-1">Sisa {{ $j->available_stock }}</span>
-                        </label>
-                    @endforeach
-                </div>
-            </section>
-
-            <!-- 3. Biodata Pelari & Mockup BIB -->
-            <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
-                <h2 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">3</span>
-                    Data Diri Pelari
-                </h2>
-                <p class="text-xs text-slate-400 mb-6">Data ini dicetak di nomor dada dan digunakan untuk verifikasi di hari lomba.</p>
-
-                <!-- Live BIB Preview -->
-                <div class="mb-6 p-4 rounded-xl bg-slate-950 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="text-xs text-slate-400">
-                        <span class="font-bold text-white block text-sm">Preview Nomor Dada (BIB) Anda:</span>
-                        Nama akan dicetak otomatis dalam huruf kapital.
-                    </div>
-                    <div class="bg-gradient-to-r from-sky-500 to-indigo-600 rounded-lg p-3 w-56 text-center text-white shadow-lg">
-                        <div class="text-[10px] font-mono tracking-widest text-sky-100 uppercase">JELATIX RUNNER</div>
-                        <div class="text-2xl font-black tracking-widest font-mono my-0.5">5K-XXXX</div>
-                        <div id="bibNamePreview" class="text-xs font-bold uppercase truncate tracking-wider">NAMA ANDA</div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Nama Lengkap Sesuai KTP *</label>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Nama Lengkap Pemesan *</label>
                         <input 
                             type="text" 
-                            name="full_name" 
-                            id="fullNameInput" 
-                            value="{{ old('full_name') }}" 
+                            name="buyer_name" 
+                            id="buyerNameInput" 
+                            value="{{ old('buyer_name') }}" 
                             required 
-                            placeholder="Contoh: Budi Pratama"
+                            placeholder="Contoh: Budi Santoso"
                             class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
                         >
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Nama di BIB (Max 14 Karakter)</label>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Email Pemesan *</label>
                         <input 
-                            type="text" 
-                            name="bib_name" 
-                            id="bibNameInput" 
-                            maxlength="14" 
-                            value="{{ old('bib_name') }}" 
-                            placeholder="Contoh: BUDI P (opsional)"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 uppercase"
-                        >
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Jenis Identitas *</label>
-                        <select name="id_type" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-sky-500">
-                            <option value="KTP" {{ old('id_type') == 'KTP' ? 'selected' : '' }}>KTP (WNI)</option>
-                            <option value="SIM" {{ old('id_type') == 'SIM' ? 'selected' : '' }}>SIM</option>
-                            <option value="Passport" {{ old('id_type') == 'Passport' ? 'selected' : '' }}>Passport (WNA/Asing)</option>
-                            <option value="KIA" {{ old('id_type') == 'KIA' ? 'selected' : '' }}>KIA (Kartu Identitas Anak)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Nomor Identitas (NIK/Paspor) *</label>
-                        <input 
-                            type="text" 
-                            name="id_number" 
-                            value="{{ old('id_number') }}" 
+                            type="email" 
+                            name="buyer_email" 
+                            id="buyerEmailInput" 
+                            value="{{ old('buyer_email') }}" 
                             required 
-                            placeholder="16 digit NIK KTP..."
+                            placeholder="budi@example.com"
                             class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
                         >
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Jenis Kelamin *</label>
-                        <select name="gender" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-sky-500">
-                            <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Laki-laki</option>
-                            <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Perempuan</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Tanggal Lahir *</label>
-                        <input 
-                            type="date" 
-                            name="birth_date" 
-                            value="{{ old('birth_date') }}" 
-                            required 
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-sky-500"
-                        >
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Golongan Darah *</label>
-                        <select name="blood_type" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-sky-500">
-                            <option value="O+" {{ old('blood_type') == 'O+' ? 'selected' : '' }}>O+</option>
-                            <option value="A+" {{ old('blood_type') == 'A+' ? 'selected' : '' }}>A+</option>
-                            <option value="B+" {{ old('blood_type') == 'B+' ? 'selected' : '' }}>B+</option>
-                            <option value="AB+" {{ old('blood_type') == 'AB+' ? 'selected' : '' }}>AB+</option>
-                            <option value="Unknown" {{ old('blood_type') == 'Unknown' ? 'selected' : '' }}>Tidak Tahu</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Estimasi Waktu Tempuh / Target Finish</label>
-                        <input 
-                            type="text" 
-                            name="estimated_finish_time" 
-                            value="{{ old('estimated_finish_time') }}" 
-                            placeholder="Contoh: 00:30:00 (30 menit)"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
-                        >
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Nomor WhatsApp Aktif *</label>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Nomor WhatsApp Pemesan *</label>
                         <input 
                             type="tel" 
-                            name="phone" 
-                            value="{{ old('phone') }}" 
+                            name="buyer_phone" 
+                            id="buyerPhoneInput" 
+                            value="{{ old('buyer_phone') }}" 
                             required 
                             placeholder="0812xxxxxxxx"
                             class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
                         >
                     </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Email Pengiriman Tiket *</label>
-                        <input 
-                            type="email" 
-                            name="email" 
-                            value="{{ old('email') }}" 
-                            required 
-                            placeholder="emailanda@gmail.com"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
-                        >
-                    </div>
                 </div>
             </section>
 
-            <!-- 4. Kontak Darurat & Medis -->
+            <!-- 2. Formulir Data Pelari & Tiket (Multi-Runner Kolektif) -->
             <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
-                <h2 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">4</span>
-                    Kontak Darurat & Info Medis
-                </h2>
-                <p class="text-xs text-slate-400 mb-6">Wajib diisi demi keselamatan Anda saat berlari di rute lomba.</p>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-800">
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Nama Kontak Darurat *</label>
-                        <input 
-                            type="text" 
-                            name="emergency_contact_name" 
-                            value="{{ old('emergency_contact_name') }}" 
-                            required 
-                            placeholder="Nama keluarga..."
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
-                        >
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">2</span>
+                            Daftar Pelari & Nomor Dada (BIB)
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Beli tiket untuk diri Anda sendiri atau daftarkan hingga 10 teman sekaligus dalam 1 kali pembayaran.
+                        </p>
                     </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">No. Telp Darurat *</label>
-                        <input 
-                            type="tel" 
-                            name="emergency_contact_phone" 
-                            value="{{ old('emergency_contact_phone') }}" 
-                            required 
-                            placeholder="08xxxxxxxx"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                    <div class="flex items-center gap-3">
+                        <span id="runnerCountBadge" class="text-xs font-mono font-bold text-sky-300 bg-sky-500/10 px-3 py-1.5 rounded-xl border border-sky-500/20">
+                            1 Pelari Terdaftar
+                        </span>
+                        <button 
+                            type="button" 
+                            id="addRunnerBtn" 
+                            onclick="addRunner()" 
+                            class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer"
                         >
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Hubungan *</label>
-                        <input 
-                            type="text" 
-                            name="emergency_contact_relation" 
-                            value="{{ old('emergency_contact_relation') }}" 
-                            required 
-                            placeholder="Istri, Suami, Orang Tua"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
-                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                            + TAMBAH PELARI
+                        </button>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">Riwayat Penyakit Khusus / Alergi Obat (Jika Ada)</label>
-                    <textarea 
-                        name="medical_conditions" 
-                        rows="2" 
-                        placeholder="Contoh: Riwayat asma, alergi penisilin, dll. Kosongkan jika tidak ada."
-                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
-                    >{{ old('medical_conditions') }}</textarea>
+                <!-- Container Kartu Pelari -->
+                <div id="runnersContainer" class="space-y-6">
+                    <!-- Kartu pelari akan dirender secara dinamis oleh JavaScript -->
                 </div>
             </section>
 
-            <!-- 5. Dynamic Custom Fields (jika ada) -->
-            @if($event->customFields->count() > 0)
-                <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
-                    <h2 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                        <span class="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">5</span>
-                        Informasi Tambahan Event
-                    </h2>
-                    <p class="text-xs text-slate-400 mb-6">Pertanyaan khusus yang disediakan oleh pihak panitia lomba.</p>
-
-                    <div class="space-y-4">
-                        @foreach($event->customFields as $field)
-                            <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1">
-                                    {{ $field->label }} {!! $field->is_required ? '<span class="text-rose-400">*</span>' : '' !!}
-                                </label>
-
-                                @if($field->field_type === 'select')
-                                    <select name="custom_fields[{{ $field->field_key }}]" {{ $field->is_required ? 'required' : '' }} class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-sky-500">
-                                        <option value="">-- Pilih Opsi --</option>
-                                        @foreach($field->options as $opt)
-                                            <option value="{{ $opt }}">{{ $opt }}</option>
-                                        @endforeach
-                                    </select>
-                                @else
-                                    <input 
-                                        type="text" 
-                                        name="custom_fields[{{ $field->field_key }}]" 
-                                        {{ $field->is_required ? 'required' : '' }} 
-                                        placeholder="{{ $field->placeholder ?: '' }}"
-                                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
-                                    >
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-                </section>
-            @endif
 
             <!-- 6. Metode Pembayaran Tripay Lengkap -->
             <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
@@ -538,25 +322,34 @@
 
             <!-- Order Summary & Checkout Submit -->
             <div class="bg-slate-900 border-2 border-sky-500/50 rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div>
-                    <span class="text-xs text-slate-400 uppercase tracking-widest block">Total Pembayaran</span>
-                    <div id="grandTotalDisplay" class="text-3xl font-black text-sky-400 font-mono">
+                <div class="w-full sm:w-auto">
+                    <div class="flex items-center gap-3 mb-1">
+                        <span class="text-xs text-slate-400 uppercase tracking-widest block">Total Pembayaran</span>
+                        <span id="ticketCountSummary" class="text-xs font-mono font-bold text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/30">
+                            1 Tiket Pelari
+                        </span>
+                    </div>
+                    <div id="grandTotalDisplay" class="text-3xl sm:text-4xl font-black text-sky-400 font-mono">
                         Rp 0
                     </div>
-                    <div class="flex items-center gap-2 mt-1.5">
-                        <span class="text-[11px] text-slate-400">Metode:</span>
+                    <div id="categoryBreakdownDisplay" class="text-xs text-slate-300 mt-1 flex flex-wrap gap-2">
+                        <!-- Breakdown per kategori -->
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                        <span class="text-[11px] text-slate-400">Metode Bayar:</span>
                         <span id="selectedMethodBadge" class="text-[11px] font-bold text-sky-300 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/30 font-mono">
                             QRIS Dinamis (QRIS)
                         </span>
                     </div>
-                    <span class="text-[10px] text-slate-500 block mt-1">Sudah termasuk biaya layanan platform Rp 5.000</span>
+                    <span class="text-[10px] text-slate-500 block mt-1">Sudah termasuk biaya layanan platform Rp 5.000 (flat per transaksi)</span>
                 </div>
 
                 <button 
                     type="submit" 
-                    class="w-full sm:w-auto bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-slate-950 font-black px-10 py-4 rounded-xl text-base transition shadow-xl shadow-sky-500/25 flex items-center justify-center gap-2 cursor-pointer"
+                    id="submitBtn"
+                    class="w-full sm:w-auto bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-slate-950 font-black px-10 py-4 rounded-xl text-base transition shadow-xl shadow-sky-500/25 flex items-center justify-center gap-2 cursor-pointer shrink-0"
                 >
-                    LANJUT KE PEMBAYARAN TRIPAY &rarr;
+                    <span id="submitBtnText">LANJUT KE PEMBAYARAN TRIPAY (1 TIKET) &rarr;</span>
                 </button>
             </div>
         </form>
@@ -596,38 +389,435 @@
         </div>
     </div>
 
-    <!-- Scripts: Live BIB, Total Calculator, Channel Search & Category Filtering -->
+    <!-- Scripts: Multi-Runner Builder, Price Calculation, BIB Live Preview, and Tripay Channel Filtering -->
     <script>
-        const fullNameInput = document.getElementById('fullNameInput');
-        const bibNameInput = document.getElementById('bibNameInput');
-        const bibNamePreview = document.getElementById('bibNamePreview');
-        const grandTotalDisplay = document.getElementById('grandTotalDisplay');
-        const selectedMethodBadge = document.getElementById('selectedMethodBadge');
+        const categoriesData = @json($event->categories);
+        const jerseySizesData = @json($event->jerseySizes);
+        const customFieldsData = @json($event->customFields);
+        const MAX_RUNNERS = 10;
 
-        // BIB Name live preview
-        function updateBibPreview() {
-            const val = bibNameInput.value.trim() || fullNameInput.value.trim() || 'NAMA ANDA';
-            bibNamePreview.innerText = val.toUpperCase();
+        let runners = [];
+
+        const runnersContainer = document.getElementById('runnersContainer');
+        const runnerCountBadge = document.getElementById('runnerCountBadge');
+        const ticketCountSummary = document.getElementById('ticketCountSummary');
+        const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+        const categoryBreakdownDisplay = document.getElementById('categoryBreakdownDisplay');
+        const submitBtnText = document.getElementById('submitBtnText');
+        const selectedMethodBadge = document.getElementById('selectedMethodBadge');
+        const buyerNameInput = document.getElementById('buyerNameInput');
+        const buyerEmailInput = document.getElementById('buyerEmailInput');
+        const buyerPhoneInput = document.getElementById('buyerPhoneInput');
+
+        // Fungsi Render Kartu Pelari
+        function createRunnerCardHtml(index) {
+            const isFirst = (index === 0);
+            const title = isFirst ? 'Pelari #1 (Pelari Utama / Pemesan)' : `Pelari #${index + 1} (Teman)`;
+            
+            // Opsi Kategori
+            let categoryOptions = categoriesData.map(cat => {
+                const formattedPrice = new Intl.NumberFormat('id-ID').format(cat.normal_price);
+                return `<option value="${cat.id}" data-price="${cat.normal_price}" data-name="${cat.name}">${cat.name} (${cat.distance_km} KM) - Rp ${formattedPrice} [Sisa ${cat.quota - cat.slots_taken}]</option>`;
+            }).join('');
+
+            // Opsi Jersey
+            let jerseyOptions = jerseySizesData.map(j => {
+                return `<option value="${j.id}">${j.size_name} (${j.gender_type.toUpperCase()}) - Stok: ${j.stock - j.allocated_stock}</option>`;
+            }).join('');
+
+            // Opsi Custom Fields
+            let customFieldsHtml = '';
+            if (customFieldsData && customFieldsData.length > 0) {
+                customFieldsHtml = `
+                    <div class="mt-4 pt-4 border-t border-slate-800 space-y-3">
+                        <span class="text-xs font-bold text-sky-400 block uppercase tracking-wider">Pertanyaan Khusus Panitia:</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            ${customFieldsData.map(f => {
+                                const req = f.is_required ? 'required' : '';
+                                if (f.field_type === 'select') {
+                                    const opts = (f.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
+                                    return `
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-slate-300 mb-1">${f.label} ${f.is_required ? '<span class="text-rose-400">*</span>' : ''}</label>
+                                            <select name="participants[${index}][custom_fields][${f.field_key}]" ${req} class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-sky-500">
+                                                <option value="">-- Pilih --</option>
+                                                ${opts}
+                                            </select>
+                                        </div>
+                                    `;
+                                } else {
+                                    return `
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-slate-300 mb-1">${f.label} ${f.is_required ? '<span class="text-rose-400">*</span>' : ''}</label>
+                                            <input type="text" name="participants[${index}][custom_fields][${f.field_key}]" placeholder="${f.placeholder || ''}" ${req} class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500">
+                                        </div>
+                                    `;
+                                }
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="runner-card bg-slate-950/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl transition" id="runnerCard_${index}" data-index="${index}">
+                    <!-- Header Kartu -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4 mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center shadow-md shadow-sky-500/20">
+                                ${index + 1}
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-white">${title}</h3>
+                                <span class="text-[11px] text-slate-400">Pilih kategori, ukuran kaos, dan identitas lomba</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${isFirst ? `
+                                <label class="flex items-center gap-2 text-xs text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-3 py-1.5 rounded-xl cursor-pointer transition">
+                                    <input type="checkbox" id="syncBuyerCheckbox" checked onchange="handleSyncBuyer()" class="rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-0">
+                                    <span>Sama dengan Data Pemesan</span>
+                                </label>
+                            ` : `
+                                <button type="button" onclick="copyEmergencyFromFirst(${index})" class="text-[11px] font-semibold text-sky-400 hover:text-sky-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 px-2.5 py-1 rounded-lg transition cursor-pointer">
+                                    📋 Samakan Kontak Darurat
+                                </button>
+                                <button type="button" onclick="removeRunner(${index})" class="text-[11px] font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 px-2.5 py-1 rounded-lg transition cursor-pointer">
+                                    ✕ Hapus
+                                </button>
+                            `}
+                        </div>
+                    </div>
+
+                    <!-- Pilihan Kategori & Jersey -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        <div>
+                            <label class="block text-xs font-bold text-sky-400 mb-1 flex items-center justify-between">
+                                <span>Pilih Kategori Lomba *</span>
+                                <span class="text-[10px] text-slate-400">Jarak & Kuota</span>
+                            </label>
+                            <select name="participants[${index}][category_id]" required onchange="calculateTotal()" class="runner-category-select w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-semibold outline-none focus:border-sky-500">
+                                ${categoryOptions}
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-xs font-bold text-amber-400">Pilih Ukuran Jersey Lari *</label>
+                                <button type="button" onclick="document.getElementById('sizeChartModal').classList.remove('hidden')" class="text-[10px] text-sky-400 hover:underline">
+                                    Size Chart (cm)
+                                </button>
+                            </div>
+                            <select name="participants[${index}][jersey_size_id]" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-semibold outline-none focus:border-amber-400">
+                                ${jerseyOptions}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Identitas & Nama BIB -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Nama Lengkap Sesuai KTP *</label>
+                            <input 
+                                type="text" 
+                                name="participants[${index}][full_name]" 
+                                id="fullName_${index}" 
+                                required 
+                                oninput="handleRunnerNameInput(${index})" 
+                                placeholder="Contoh: Budi Pratama"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Nama di BIB Dada (Max 14 Karakter)</label>
+                            <input 
+                                type="text" 
+                                name="participants[${index}][bib_name]" 
+                                id="bibName_${index}" 
+                                maxlength="14" 
+                                placeholder="BUDI P (opsional)"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 uppercase"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Jenis Identitas *</label>
+                            <select name="participants[${index}][id_type]" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-sky-500">
+                                <option value="KTP">KTP (WNI)</option>
+                                <option value="SIM">SIM</option>
+                                <option value="Passport">Passport (WNA/Asing)</option>
+                                <option value="KIA">KIA (Kartu Identitas Anak)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Nomor Identitas (NIK/Paspor) *</label>
+                            <input 
+                                type="text" 
+                                name="participants[${index}][id_number]" 
+                                required 
+                                placeholder="16 digit NIK..."
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Jenis Kelamin *</label>
+                            <select name="participants[${index}][gender]" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-sky-500">
+                                <option value="male">Laki-laki</option>
+                                <option value="female">Perempuan</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Tanggal Lahir *</label>
+                            <input 
+                                type="date" 
+                                name="participants[${index}][birth_date]" 
+                                required 
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-sky-500"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Golongan Darah *</label>
+                            <select name="participants[${index}][blood_type]" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-sky-500">
+                                <option value="O+">O+</option>
+                                <option value="A+">A+</option>
+                                <option value="B+">B+</option>
+                                <option value="AB+">AB+</option>
+                                <option value="Unknown">Tidak Tahu</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Target Waktu Finish (Pace)</label>
+                            <input 
+                                type="text" 
+                                name="participants[${index}][estimated_finish_time]" 
+                                placeholder="Contoh: 00:30:00 (30 menit)"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Nomor WhatsApp Pelari *</label>
+                            <input 
+                                type="tel" 
+                                name="participants[${index}][phone]" 
+                                id="phone_${index}" 
+                                required 
+                                placeholder="0812xxxxxxxx"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Email Pelari *</label>
+                            <input 
+                                type="email" 
+                                name="participants[${index}][email]" 
+                                id="email_${index}" 
+                                required 
+                                placeholder="pelari@example.com"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Kontak Darurat & Medis -->
+                    <div class="border-t border-slate-800/80 pt-4">
+                        <span class="text-xs font-bold text-slate-400 block mb-2 uppercase tracking-wider">Kontak Darurat Pelari Ini:</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Nama Kontak Darurat *</label>
+                                <input 
+                                    type="text" 
+                                    name="participants[${index}][emergency_contact_name]" 
+                                    id="emName_${index}" 
+                                    required 
+                                    placeholder="Keluarga / Kerabat"
+                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                >
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-300 mb-1">No. Telp Darurat *</label>
+                                <input 
+                                    type="tel" 
+                                    name="participants[${index}][emergency_contact_phone]" 
+                                    id="emPhone_${index}" 
+                                    required 
+                                    placeholder="08xxxxxxxx"
+                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                >
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Hubungan *</label>
+                                <input 
+                                    type="text" 
+                                    name="participants[${index}][emergency_contact_relation]" 
+                                    id="emRel_${index}" 
+                                    required 
+                                    placeholder="Orang Tua / Teman / Pasangan"
+                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                                >
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-300 mb-1">Riwayat Penyakit Khusus / Alergi Obat (Jika Ada)</label>
+                            <input 
+                                type="text" 
+                                name="participants[${index}][medical_conditions]" 
+                                placeholder="Contoh: Asma, alergi penisilin. Kosongkan jika sehat."
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                            >
+                        </div>
+                    </div>
+
+                    ${customFieldsHtml}
+                </div>
+            `;
         }
 
-        fullNameInput.addEventListener('input', () => {
-            if (!bibNameInput.value) updateBibPreview();
-        });
-        bibNameInput.addEventListener('input', updateBibPreview);
+        // Tambah Pelari
+        function addRunner() {
+            if (runners.length >= MAX_RUNNERS) {
+                alert(`Maksimal pendaftaran dalam 1 transaksi adalah ${MAX_RUNNERS} pelari.`);
+                return;
+            }
 
-        // Price calculator
-        function updateTotal() {
-            const checkedCat = document.querySelector('input[name="category_id"]:checked');
-            if (checkedCat) {
-                const price = parseFloat(checkedCat.getAttribute('data-price')) || 0;
-                const total = price + 5000;
-                grandTotalDisplay.innerText = 'Rp ' + total.toLocaleString('id-ID');
+            const nextIndex = runners.length;
+            runners.push(nextIndex);
+            
+            const cardWrapper = document.createElement('div');
+            cardWrapper.innerHTML = createRunnerCardHtml(nextIndex);
+            runnersContainer.appendChild(cardWrapper.firstElementChild);
+
+            if (nextIndex === 0) {
+                handleSyncBuyer();
+            }
+
+            updateRunnerState();
+        }
+
+        // Hapus Pelari
+        function removeRunner(index) {
+            const card = document.getElementById(`runnerCard_${index}`);
+            if (card) {
+                card.remove();
+            }
+            
+            // Re-index runners
+            reindexRunners();
+            updateRunnerState();
+        }
+
+        function reindexRunners() {
+            const cards = runnersContainer.querySelectorAll('.runner-card');
+            runners = [];
+            cards.forEach((card, idx) => {
+                runners.push(idx);
+                card.id = `runnerCard_${idx}`;
+                card.setAttribute('data-index', idx);
+                
+                // Update title
+                const titleEl = card.querySelector('h3');
+                if (titleEl) {
+                    titleEl.innerText = (idx === 0) ? 'Pelari #1 (Pelari Utama / Pemesan)' : `Pelari #${idx + 1} (Teman)`;
+                }
+            });
+        }
+
+        function updateRunnerState() {
+            const count = runners.length;
+            runnerCountBadge.innerText = `${count} Pelari Terdaftar`;
+            ticketCountSummary.innerText = `${count} Tiket Pelari`;
+            submitBtnText.innerHTML = `LANJUT KE PEMBAYARAN TRIPAY (${count} TIKET) &rarr;`;
+
+            const addBtn = document.getElementById('addRunnerBtn');
+            if (count >= MAX_RUNNERS) {
+                addBtn.disabled = true;
+                addBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                addBtn.disabled = false;
+                addBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            calculateTotal();
+        }
+
+        // Salin Kontak Darurat dari Pelari 1 ke Pelari Lain
+        function copyEmergencyFromFirst(targetIndex) {
+            const firstEmName = document.getElementById('emName_0');
+            const firstEmPhone = document.getElementById('emPhone_0');
+            const firstEmRel = document.getElementById('emRel_0');
+
+            const targetName = document.getElementById(`emName_${targetIndex}`);
+            const targetPhone = document.getElementById(`emPhone_${targetIndex}`);
+            const targetRel = document.getElementById(`emRel_${targetIndex}`);
+
+            if (firstEmName && targetName) targetName.value = firstEmName.value;
+            if (firstEmPhone && targetPhone) targetPhone.value = firstEmPhone.value;
+            if (firstEmRel && targetRel) targetRel.value = firstEmRel.value;
+        }
+
+        // Sinkronisasi data pemesan ke Pelari 1
+        function handleSyncBuyer() {
+            const syncCheckbox = document.getElementById('syncBuyerCheckbox');
+            if (!syncCheckbox || !syncCheckbox.checked) return;
+
+            const fnInput = document.getElementById('fullName_0');
+            const phoneInput = document.getElementById('phone_0');
+            const emailInput = document.getElementById('email_0');
+
+            if (fnInput && buyerNameInput) fnInput.value = buyerNameInput.value;
+            if (phoneInput && buyerPhoneInput) phoneInput.value = buyerPhoneInput.value;
+            if (emailInput && buyerEmailInput) emailInput.value = buyerEmailInput.value;
+        }
+
+        if (buyerNameInput) buyerNameInput.addEventListener('input', handleSyncBuyer);
+        if (buyerEmailInput) buyerEmailInput.addEventListener('input', handleSyncBuyer);
+        if (buyerPhoneInput) buyerPhoneInput.addEventListener('input', handleSyncBuyer);
+
+        function handleRunnerNameInput(index) {
+            const fn = document.getElementById(`fullName_${index}`);
+            const bn = document.getElementById(`bibName_${index}`);
+            if (bn && !bn.value && fn) {
+                // Jangan paksa ubah jika user sedang mengetik
             }
         }
 
-        document.querySelectorAll('input[name="category_id"]').forEach(radio => {
-            radio.addEventListener('change', updateTotal);
-        });
+        // Hitung Grand Total & Ringkasan Kategori
+        function calculateTotal() {
+            const categorySelects = document.querySelectorAll('.runner-category-select');
+            let sumPrice = 0;
+            const categoryBreakdown = {};
+
+            categorySelects.forEach(sel => {
+                const opt = sel.selectedOptions[0];
+                if (opt) {
+                    const price = parseFloat(opt.getAttribute('data-price')) || 0;
+                    const name = opt.getAttribute('data-name') || 'Lari';
+                    sumPrice += price;
+                    categoryBreakdown[name] = (categoryBreakdown[name] || 0) + 1;
+                }
+            });
+
+            const platformFee = 5000;
+            const grandTotal = sumPrice + platformFee;
+            grandTotalDisplay.innerText = 'Rp ' + grandTotal.toLocaleString('id-ID');
+
+            // Render breakdown tags
+            const breakdownHtml = Object.entries(categoryBreakdown).map(([name, qty]) => {
+                return `<span class="bg-slate-800 text-sky-300 px-2 py-0.5 rounded border border-slate-700 font-mono">${qty}x ${name}</span>`;
+            }).join(' ');
+
+            categoryBreakdownDisplay.innerHTML = breakdownHtml;
+        }
 
         // Payment Method selection badge update
         function updateSelectedMethodBadge() {
@@ -643,13 +833,11 @@
             radio.addEventListener('change', updateSelectedMethodBadge);
         });
 
-        // Interactive Filter by Category Tab & Search Input
+        // Filter Channel Tripay (Search & Tabs)
         const searchInput = document.getElementById('paymentChannelSearch');
         const tabBtns = document.querySelectorAll('.cat-tab-btn');
         const groupBlocks = document.querySelectorAll('.channel-group-block');
-        const channelCards = document.querySelectorAll('.payment-channel-card');
         const noMatchEl = document.getElementById('noChannelMatch');
-
         let currentActiveTab = 'all';
 
         function filterPaymentChannels() {
@@ -709,9 +897,11 @@
             searchInput.addEventListener('input', filterPaymentChannels);
         }
 
-        // Initialize defaults
-        updateTotal();
-        updateSelectedMethodBadge();
+        // Inisialisasi: Tambahkan Pelari #1 saat halaman pertama kali dibuka
+        document.addEventListener('DOMContentLoaded', () => {
+            addRunner();
+            updateSelectedMethodBadge();
+        });
     </script>
 </body>
 </html>

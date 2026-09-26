@@ -353,4 +353,113 @@ class JelatixRunningEventTest extends TestCase
         $this->assertEquals('paid', $paidOrder->status);
         $this->assertNotNull($paidOrder->participants->first()->bib_number);
     }
+
+    public function test_buyer_can_register_multiple_runners_in_single_order(): void
+    {
+        $category5k = \App\Models\EventCategory::create([
+            'event_id' => $this->event->id,
+            'name' => '5K Fun Run',
+            'distance_km' => 5.0,
+            'normal_price' => 150000,
+            'quota' => 50,
+            'bib_prefix' => '5K',
+            'bib_start_number' => 5001,
+            'is_active' => true,
+        ]);
+
+        $jerseyM = \App\Models\JerseySize::create([
+            'event_id' => $this->event->id,
+            'size_name' => 'M',
+            'gender_type' => 'unisex',
+            'stock' => 50,
+            'allocated_stock' => 0,
+        ]);
+
+        $jerseyL = \App\Models\JerseySize::create([
+            'event_id' => $this->event->id,
+            'size_name' => 'L',
+            'gender_type' => 'unisex',
+            'stock' => 50,
+            'allocated_stock' => 0,
+        ]);
+
+        $payload = [
+            'buyer_name' => 'Budi Santoso',
+            'buyer_email' => 'budi@runnerclub.id',
+            'buyer_phone' => '081299990000',
+            'payment_method' => 'QRIS',
+            'waiver_accepted' => '1',
+            'participants' => [
+                [
+                    'category_id' => $this->category->id, // 250.000
+                    'jersey_size_id' => $jerseyL->id,
+                    'full_name' => 'Budi Santoso',
+                    'bib_name' => 'BUDI S',
+                    'id_type' => 'KTP',
+                    'id_number' => '3271011111110001',
+                    'gender' => 'male',
+                    'birth_date' => '1992-05-10',
+                    'blood_type' => 'O+',
+                    'phone' => '081299990000',
+                    'email' => 'budi@runnerclub.id',
+                    'emergency_contact_name' => 'Siti',
+                    'emergency_contact_phone' => '081299990001',
+                    'emergency_contact_relation' => 'Istri',
+                ],
+                [
+                    'category_id' => $category5k->id, // 150.000
+                    'jersey_size_id' => $jerseyM->id,
+                    'full_name' => 'Andi Wijaya',
+                    'bib_name' => 'ANDI W',
+                    'id_type' => 'KTP',
+                    'id_number' => '3271012222220002',
+                    'gender' => 'male',
+                    'birth_date' => '1995-09-20',
+                    'blood_type' => 'A+',
+                    'phone' => '081299990002',
+                    'email' => 'andi@runnerclub.id',
+                    'emergency_contact_name' => 'Siti',
+                    'emergency_contact_phone' => '081299990001',
+                    'emergency_contact_relation' => 'Teman Club',
+                ],
+            ],
+        ];
+
+        $checkoutRes = $this->post("/events/{$this->event->slug}/checkout", $payload);
+
+        $order = Order::where('customer_email', 'budi@runnerclub.id')->first();
+        $this->assertNotNull($order);
+        $this->assertEquals('pending', $order->status);
+        $this->assertEquals(2, $order->participants()->count());
+
+        // Price: 250.000 + 150.000 = 400.000; total = 405.000 (with flat platform fee 5.000)
+        $this->assertEquals(400000, $order->subtotal);
+        $this->assertEquals(405000, $order->grand_total);
+
+        // Check quota increments
+        $this->assertEquals(1, $this->category->fresh()->slots_taken);
+        $this->assertEquals(1, $category5k->fresh()->slots_taken);
+
+        // Check invoice page shows both participants
+        $invoiceRes = $this->get("/orders/{$order->order_code}");
+        $invoiceRes->assertStatus(200);
+        $invoiceRes->assertSee('Budi Santoso');
+        $invoiceRes->assertSee('Andi Wijaya');
+
+        // Simulate Tripay Payment
+        $simulateRes = $this->post("/orders/{$order->order_code}/simulate");
+        $simulateRes->assertRedirect(route('public.order.show', $order->order_code));
+
+        $paidOrder = $order->fresh();
+        $this->assertEquals('paid', $paidOrder->status);
+
+        $participants = $paidOrder->participants()->get();
+        $this->assertCount(2, $participants);
+        foreach ($participants as $p) {
+            $this->assertNotNull($p->bib_number);
+            $this->assertNotEmpty($p->bib_number);
+        }
+        $this->assertNotEquals($participants[0]->bib_number, $participants[1]->bib_number);
+    }
 }
+
