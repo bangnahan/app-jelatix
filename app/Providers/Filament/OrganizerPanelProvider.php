@@ -26,8 +26,9 @@ class OrganizerPanelProvider extends PanelProvider
             ->id('organizer')
             ->path('organizer')
             ->login()
+            ->brandName('Jelatix Organizer')
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Sky,
             ])
             ->discoverResources(in: app_path('Filament/Organizer/Resources'), for: 'App\\Filament\\Organizer\\Resources')
             ->discoverPages(in: app_path('Filament/Organizer/Pages'), for: 'App\\Filament\\Organizer\\Pages')
