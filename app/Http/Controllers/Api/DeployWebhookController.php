@@ -37,7 +37,16 @@ class DeployWebhookController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthorized signature or secret'], 403);
         }
 
-        // 2. Hanya jalankan jika commit ditujukan ke branch main
+        // 2. Tangani event 'ping' saat pertama kali webhook ditambahkan di GitHub
+        if ($request->header('X-GitHub-Event') === 'ping') {
+            Log::info('GitHub Webhook: Ping event received and verified.');
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pong! Webhook Jelatix terhubung dengan sukses ke GitHub.',
+            ]);
+        }
+
+        // 3. Hanya jalankan deployment jika event adalah push ke branch main
         $ref = $request->input('ref');
         if ($ref && $ref !== 'refs/heads/main') {
             return response()->json([
@@ -46,25 +55,42 @@ class DeployWebhookController extends Controller
             ]);
         }
 
-        // 3. Jalankan script deployment otomatis
-        $basePath = base_path();
-        $commands = [
-            "cd {$basePath}",
-            "git pull origin main 2>&1",
-            "php artisan migrate --force 2>&1",
-            "php artisan optimize 2>&1",
-        ];
+        // 4. Jalankan script deployment otomatis
+        try {
+            $basePath = base_path();
+            $commands = [
+                "cd {$basePath}",
+                "git pull origin main 2>&1",
+                "php artisan migrate --force 2>&1",
+                "php artisan optimize 2>&1",
+            ];
 
-        $fullCommand = implode(' && ', $commands);
-        $output = shell_exec($fullCommand);
+            $fullCommand = implode(' && ', $commands);
 
-        Log::info("Auto-deploy executed successfully via GitHub webhook:\n" . $output);
+            if (function_exists('shell_exec')) {
+                $output = shell_exec($fullCommand);
+            } elseif (function_exists('exec')) {
+                $lines = [];
+                exec($fullCommand, $lines);
+                $output = implode("\n", $lines);
+            } else {
+                $output = "Note: shell_exec is disabled in php.ini. Please enable it in Hestia CP.";
+            }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Auto-deploy completed successfully',
-            'branch' => 'main',
-            'output' => $output,
-        ]);
+            Log::info("Auto-deploy executed successfully via GitHub webhook:\n" . $output);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Auto-deploy completed successfully',
+                'branch' => 'main',
+                'output' => $output,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Auto-deploy exception: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

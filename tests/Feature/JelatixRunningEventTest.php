@@ -510,6 +510,19 @@ class JelatixRunningEventTest extends TestCase
             'status' => 'ignored',
         ]);
     }
+
+    public function test_auto_deploy_webhook_handles_github_ping_event(): void
+    {
+        $response = $this->withHeaders([
+            'X-GitHub-Event' => 'ping',
+            'X-Deploy-Secret' => 'jelatix_auto_deploy_secret_2026',
+        ])->postJson('/api/deploy');
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'status' => 'success',
+        ]);
+    }
 }
 
 
