@@ -717,6 +717,72 @@ class JelatixRunningEventTest extends TestCase
         $job = new \App\Jobs\SendPaymentPendingEmailJob($order);
         $job->handle($mockMailketing);
     }
+
+    public function test_superadmin_can_manage_organizers_and_payouts(): void
+    {
+        $superadmin = \App\Models\User::create([
+            'name' => 'Super Admin',
+            'email' => 'superadmin@jelatix.com',
+            'password' => bcrypt('password'),
+            'role' => 'superadmin',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($superadmin);
+
+        // 1. Admin can access Organizers list and create page
+        $resOrganizers = $this->get('/admin/organizers');
+        $resOrganizers->assertStatus(200);
+
+        $resCreateOrganizer = $this->get('/admin/organizers/create');
+        $resCreateOrganizer->assertStatus(200);
+
+        // 2. Admin can create Organizer model
+        $newOrg = Organizer::create([
+            'name' => 'Jakarta Running Community',
+            'slug' => 'jakarta-running-community',
+            'email' => 'info@jakartarunning.id',
+            'phone' => '081299990000',
+            'bank_name' => 'Bank Central Asia (BCA)',
+            'bank_account_number' => '8820123456',
+            'bank_account_holder' => 'PT Jakarta Lari Sejahtera',
+            'commission_rate' => 5.0,
+            'is_verified' => true,
+            'is_active' => true,
+        ]);
+        $this->assertDatabaseHas('organizers', ['slug' => 'jakarta-running-community']);
+
+        // 3. Admin can access Organizer Payouts list and create page
+        $resPayouts = $this->get('/admin/organizer-payouts');
+        $resPayouts->assertStatus(200);
+
+        $resCreatePayout = $this->get('/admin/organizer-payouts/create');
+        $resCreatePayout->assertStatus(200);
+
+        // 4. Admin can create OrganizerPayout
+        $payout = \App\Models\OrganizerPayout::create([
+            'organizer_id' => $newOrg->id,
+            'event_id' => $this->event->id,
+            'milestone_phase' => 'phase_1_closed_reg',
+            'requested_amount' => 10000000,
+            'platform_fee_deducted' => 500000,
+            'net_payout_amount' => 9500000,
+            'bank_name' => 'BCA',
+            'bank_account_number' => '8820123456',
+            'bank_account_holder' => 'PT Jakarta Lari Sejahtera',
+            'status' => 'requested',
+        ]);
+        $this->assertDatabaseHas('organizer_payouts', ['id' => $payout->id, 'net_payout_amount' => 9500000]);
+
+        // 5. Test payout status update to transferred
+        $payout->update([
+            'status' => 'transferred',
+            'transferred_at' => now(),
+            'approved_by_user_id' => $superadmin->id,
+        ]);
+        $this->assertEquals('transferred', $payout->fresh()->status);
+        $this->assertEquals($superadmin->id, $payout->fresh()->approved_by_user_id);
+    }
 }
 
 
