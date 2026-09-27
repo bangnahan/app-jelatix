@@ -21,6 +21,7 @@ Route::post('/events/{slug}/checkout', [PublicRegistrationController::class, 'ch
 Route::get('/orders/{order_code}', [PublicRegistrationController::class, 'showInvoice'])->name('public.order.show');
 Route::get('/orders/{order_code}/status', [PublicRegistrationController::class, 'checkStatus'])->name('public.order.status');
 Route::post('/orders/{order_code}/simulate', [PublicRegistrationController::class, 'simulatePay'])->name('public.order.simulate');
+Route::post('/orders/{order_code}/resend-ticket', [PublicRegistrationController::class, 'resendTicket'])->name('public.order.resend_ticket');
 
 // Fitur Mandiri Pelari: Cek Tiket & Unduh E-Ticket
 Route::get('/cek-tiket', [PublicTicketController::class, 'index'])->name('public.ticket.index');

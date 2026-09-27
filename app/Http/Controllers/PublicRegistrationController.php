@@ -304,12 +304,28 @@ class PublicRegistrationController extends Controller
                         $this->bibService->autoAssignBib($participant);
                     }
                 }
-
-                // Kirim email tiket
-                SendTicketEmailJob::dispatch($order);
             });
+
+            // Kirim email tiket seketika setelah pembayaran berhasil
+            SendTicketEmailJob::dispatchAfterResponse($order);
         }
 
         return redirect()->route('public.order.show', $orderCode)->with('success', 'Pembayaran Sandbox Berhasil Dikonfirmasi!');
+    }
+
+    /**
+     * Kirim ulang E-Ticket resmi ke email peserta/pemesan
+     */
+    public function resendTicket(string $orderCode): RedirectResponse
+    {
+        $order = Order::where('order_code', $orderCode)->firstOrFail();
+
+        if (!$order->isPaid()) {
+            return redirect()->route('public.order.show', $orderCode)->withErrors(['error' => 'Pesanan belum lunas. Silakan lakukan pembayaran terlebih dahulu.']);
+        }
+
+        SendTicketEmailJob::dispatchAfterResponse($order);
+
+        return redirect()->route('public.order.show', $orderCode)->with('success', 'E-Ticket & Nomor BIB berhasil dikirimkan ulang ke email Anda!');
     }
 }

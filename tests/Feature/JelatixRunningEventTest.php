@@ -350,6 +350,11 @@ class JelatixRunningEventTest extends TestCase
         $paidOrder = $order->fresh();
         $this->assertEquals('paid', $paidOrder->status);
         $this->assertNotNull($paidOrder->participants->first()->bib_number);
+
+        // Test resend ticket
+        $resendRes = $this->post("/orders/{$order->order_code}/resend-ticket");
+        $resendRes->assertRedirect(route('public.order.show', $order->order_code));
+        $resendRes->assertSessionHas('success');
     }
 
     public function test_buyer_can_register_multiple_runners_in_single_order(): void

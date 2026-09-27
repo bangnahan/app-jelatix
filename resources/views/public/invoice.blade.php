@@ -74,9 +74,20 @@
                     </a>
                 @endforeach
 
-                <div class="mt-5 text-xs text-slate-500">
+                <div class="mt-5 text-xs text-slate-400">
                     E-Ticket juga telah dikirimkan ke email <strong>{{ $order->customer_email }}</strong>.
                 </div>
+
+                <form action="{{ route('public.order.resend_ticket', $order->order_code) }}" method="POST" class="mt-3">
+                    @csrf
+                    <button 
+                        type="submit" 
+                        class="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-400 hover:text-sky-300 bg-sky-950/40 hover:bg-sky-900/50 border border-sky-800/40 px-3 py-1.5 rounded-lg transition cursor-pointer"
+                    >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        <span>Kirim Ulang E-Ticket ke Email</span>
+                    </button>
+                </form>
             </div>
         @else
             <!-- PENDING PAYMENT INVOICE -->

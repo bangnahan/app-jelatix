@@ -104,7 +104,7 @@ class TripayWebhookController extends Controller
                     }
 
                     // Dispatch Job pengiriman email E-Ticket via Mailketing
-                    SendTicketEmailJob::dispatch($order);
+                    SendTicketEmailJob::dispatchAfterResponse($order);
                 } elseif (in_array($tripayStatus, ['EXPIRED', 'FAILED'])) {
                     if ($order->status === 'pending') {
                         $order->update(['status' => strtolower($tripayStatus)]);
