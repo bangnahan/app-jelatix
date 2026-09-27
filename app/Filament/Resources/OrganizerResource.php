@@ -90,6 +90,45 @@ class OrganizerResource extends Resource
                                     ->label('Atas Nama Rekening')
                                     ->maxLength(255),
                             ])->columns(3),
+
+                        Forms\Components\Section::make('Akun Pengguna & Akses Login Portal EO')
+                            ->description('Buat akun login pertama untuk PIC Penyelenggara agar bisa langsung mengakses https://app.jelatix.com/organizer')
+                            ->schema([
+                                Forms\Components\Toggle::make('create_user_account')
+                                    ->label('Buat Akun Login untuk PIC Penyelenggara Ini')
+                                    ->default(true)
+                                    ->live()
+                                    ->columnSpanFull(),
+
+                                Forms\Components\TextInput::make('pic_name')
+                                    ->label('Nama Lengkap PIC EO')
+                                    ->visible(fn (Forms\Get $get) => (bool) $get('create_user_account'))
+                                    ->required(fn (Forms\Get $get) => (bool) $get('create_user_account'))
+                                    ->maxLength(255),
+
+                                Forms\Components\TextInput::make('pic_email')
+                                    ->label('Email Login PIC')
+                                    ->email()
+                                    ->visible(fn (Forms\Get $get) => (bool) $get('create_user_account'))
+                                    ->required(fn (Forms\Get $get) => (bool) $get('create_user_account'))
+                                    ->maxLength(255)
+                                    ->helperText('Email ini akan digunakan PIC untuk login ke portal https://app.jelatix.com/organizer'),
+
+                                Forms\Components\TextInput::make('pic_password')
+                                    ->label('Password Login Awal')
+                                    ->password()
+                                    ->revealable()
+                                    ->visible(fn (Forms\Get $get) => (bool) $get('create_user_account'))
+                                    ->required(fn (Forms\Get $get) => (bool) $get('create_user_account'))
+                                    ->default(fn () => Str::random(10))
+                                    ->helperText('Password acak dibuat otomatis. Anda dapat menyesuaikannya atau mencatatnya untuk diberikan ke EO.'),
+
+                                Forms\Components\Toggle::make('send_credentials_email')
+                                    ->label('Kirim Kredensial Login (Email & Password) Otomatis ke Email PIC')
+                                    ->visible(fn (Forms\Get $get) => (bool) $get('create_user_account'))
+                                    ->default(true)
+                                    ->helperText('Sistem akan mengirimkan email resmi berisi URL portal dan password login ke email PIC di atas.'),
+                            ])->columns(2)->visibleOn('create'),
                     ])->columnSpan(['lg' => 2]),
 
                 Forms\Components\Group::make()
@@ -183,6 +222,103 @@ class OrganizerResource extends Resource
                     ->label('Status Aktif'),
             ])
             ->actions([
+                Tables\Actions\Action::make('manage_accounts')
+                    ->label('Akses Login')
+                    ->icon('heroicon-o-key')
+                    ->color('warning')
+                    ->modalHeading(fn (Organizer $record) => "Kelola Akun Login PIC: {$record->name}")
+                    ->form([
+                        Forms\Components\Placeholder::make('existing_users')
+                            ->label('Akun Login Terdaftar Saat Ini')
+                            ->content(function (Organizer $record) {
+                                $users = $record->users;
+                                if ($users->isEmpty()) {
+                                    return 'Belum ada akun pengguna untuk organizer ini.';
+                                }
+                                return $users->map(fn ($u) => "• {$u->name} ({$u->email}) - Role: {$u->role}")->join("\n");
+                            }),
+
+                        Forms\Components\TextInput::make('user_name')
+                            ->label('Nama Lengkap PIC / Pengguna')
+                            ->required()
+                            ->maxLength(255)
+                            ->default(fn (Organizer $record) => $record->users->first()?->name ?: $record->name),
+
+                        Forms\Components\TextInput::make('user_email')
+                            ->label('Email Login PIC')
+                            ->email()
+                            ->required()
+                            ->maxLength(255)
+                            ->default(fn (Organizer $record) => $record->users->first()?->email ?: $record->email)
+                            ->helperText('Jika email sudah ada di sistem, passwordnya akan diperbarui. Jika belum ada, akun baru akan otomatis dibuat.'),
+
+                        Forms\Components\TextInput::make('user_password')
+                            ->label('Password Baru')
+                            ->password()
+                            ->revealable()
+                            ->required()
+                            ->default(fn () => Str::random(10))
+                            ->helperText('Password baru untuk login ke portal https://app.jelatix.com/organizer'),
+
+                        Forms\Components\Toggle::make('send_email_notification')
+                            ->label('Kirim Kredensial Baru ke Email Pengguna')
+                            ->default(true)
+                            ->helperText('Otomatis kirimkan email resmi berisi password baru ke email PIC di atas.'),
+                    ])
+                    ->action(function (Organizer $record, array $data, \App\Services\MailketingService $mailketing) {
+                        $user = \App\Models\User::where('email', $data['user_email'])->first();
+
+                        if ($user) {
+                            $user->update([
+                                'organizer_id' => $record->id,
+                                'name' => $data['user_name'],
+                                'password' => bcrypt($data['user_password']),
+                                'role' => in_array($user->role, ['superadmin', 'organizer_owner']) ? $user->role : 'organizer_owner',
+                                'is_active' => true,
+                            ]);
+                        } else {
+                            $user = \App\Models\User::create([
+                                'organizer_id' => $record->id,
+                                'name' => $data['user_name'],
+                                'email' => $data['user_email'],
+                                'password' => bcrypt($data['user_password']),
+                                'role' => 'organizer_owner',
+                                'is_active' => true,
+                            ]);
+                        }
+
+                        if (!empty($data['send_email_notification'])) {
+                            $loginUrl = rtrim(config('app.url', 'https://app.jelatix.com'), '/') . '/organizer';
+                            if (str_contains($loginUrl, 'localhost') || str_contains($loginUrl, '127.0.0.1')) {
+                                $loginUrl = 'https://app.jelatix.com/organizer';
+                            }
+
+                            $html = view('emails.organizer_credentials', [
+                                'organizer' => $record,
+                                'userName' => $user->name,
+                                'userEmail' => $user->email,
+                                'password' => $data['user_password'],
+                                'loginUrl' => $loginUrl,
+                            ])->render();
+
+                            try {
+                                $mailketing->sendEmail(
+                                    recipientEmail: $user->email,
+                                    recipientName: $user->name,
+                                    subject: "[Akses Portal EO] Kredensial Login Penyelenggara: {$record->name}",
+                                    htmlContent: $html
+                                );
+                            } catch (\Exception $e) {
+                                \Illuminate\Support\Facades\Log::error("Gagal kirim email reset password EO: " . $e->getMessage());
+                            }
+                        }
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Akun Login Berhasil Disimpan!')
+                            ->body("Akun {$user->email} kini dapat login ke portal /organizer dengan password baru.")
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

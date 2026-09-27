@@ -782,6 +782,31 @@ class JelatixRunningEventTest extends TestCase
         ]);
         $this->assertEquals('transferred', $payout->fresh()->status);
         $this->assertEquals($superadmin->id, $payout->fresh()->approved_by_user_id);
+
+        // 6. Test PIC user account creation under organizer
+        $picUser = \App\Models\User::create([
+            'organizer_id' => $newOrg->id,
+            'name' => 'Bambang PIC',
+            'email' => 'bambang@jakartarunning.id',
+            'password' => bcrypt('Secret123!'),
+            'role' => 'organizer_owner',
+            'is_active' => true,
+        ]);
+        $this->assertTrue($picUser->isOrganizer());
+        $this->assertEquals($newOrg->id, $picUser->organizer_id);
+
+        // Test credentials email view rendering
+        $emailHtml = view('emails.organizer_credentials', [
+            'organizer' => $newOrg,
+            'userName' => $picUser->name,
+            'userEmail' => $picUser->email,
+            'password' => 'Secret123!',
+            'loginUrl' => 'https://app.jelatix.com/organizer',
+        ])->render();
+
+        $this->assertStringContainsString('bambang@jakartarunning.id', $emailHtml);
+        $this->assertStringContainsString('Secret123!', $emailHtml);
+        $this->assertStringContainsString('https://app.jelatix.com/organizer', $emailHtml);
     }
 }
 
