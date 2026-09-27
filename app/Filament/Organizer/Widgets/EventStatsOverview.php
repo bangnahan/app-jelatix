@@ -18,13 +18,18 @@ class EventStatsOverview extends BaseWidget
         $participantQuery = Participant::query();
         $orderQuery = Order::query();
 
-        if ($user && ! $user->isSuperAdmin() && $user->organizer_id) {
-            $participantQuery->whereHas('category.event', function ($q) use ($user) {
-                $q->where('organizer_id', $user->organizer_id);
-            });
-            $orderQuery->whereHas('event', function ($q) use ($user) {
-                $q->where('organizer_id', $user->organizer_id);
-            });
+        if ($user && ! $user->isSuperAdmin()) {
+            if ($user->organizer_id) {
+                $participantQuery->whereHas('category.event', function ($q) use ($user) {
+                    $q->where('organizer_id', $user->organizer_id);
+                });
+                $orderQuery->whereHas('event', function ($q) use ($user) {
+                    $q->where('organizer_id', $user->organizer_id);
+                });
+            } else {
+                $participantQuery->whereRaw('1 = 0');
+                $orderQuery->whereRaw('1 = 0');
+            }
         }
 
         $totalParticipants = (clone $participantQuery)->count();

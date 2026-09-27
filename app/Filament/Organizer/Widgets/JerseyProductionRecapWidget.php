@@ -32,8 +32,12 @@ class JerseyProductionRecapWidget extends Widget
         $user = auth()->user();
         $query = Event::query();
 
-        if ($user && ! $user->isSuperAdmin() && $user->organizer_id) {
-            $query->where('organizer_id', $user->organizer_id);
+        if ($user && ! $user->isSuperAdmin()) {
+            if ($user->organizer_id) {
+                $query->where('organizer_id', $user->organizer_id);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         return $query->orderBy('event_start_date', 'desc')->get();
@@ -45,7 +49,18 @@ class JerseyProductionRecapWidget extends Widget
             return null;
         }
 
-        return Event::with(['categories', 'jerseySizes'])->find($this->selectedEventId);
+        $user = auth()->user();
+        $query = Event::with(['categories', 'jerseySizes'])->where('id', $this->selectedEventId);
+
+        if ($user && ! $user->isSuperAdmin()) {
+            if ($user->organizer_id) {
+                $query->where('organizer_id', $user->organizer_id);
+            } else {
+                return null;
+            }
+        }
+
+        return $query->first();
     }
 
     public function getRecapDataProperty(): array

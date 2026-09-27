@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class OrderResource extends Resource
 {
@@ -129,6 +130,24 @@ class OrderResource extends Resource
     public static function getRelations(): array
     {
         return [];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if ($user && ! $user->isSuperAdmin()) {
+            if ($user->organizer_id) {
+                $query->whereHas('event', function (Builder $q) use ($user) {
+                    $q->where('organizer_id', $user->organizer_id);
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        return $query;
     }
 
     public static function getPages(): array

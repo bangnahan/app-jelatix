@@ -55,8 +55,12 @@ class RpcScanner extends Page
         $user = auth()->user();
         $query = Event::query();
 
-        if ($user && ! $user->isSuperAdmin() && $user->organizer_id) {
-            $query->where('organizer_id', $user->organizer_id);
+        if ($user && ! $user->isSuperAdmin()) {
+            if ($user->organizer_id) {
+                $query->where('organizer_id', $user->organizer_id);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         return $query->orderBy('event_start_date', 'desc')->get();
@@ -122,10 +126,14 @@ class RpcScanner extends Page
                     ->orWhere('id_number', $token);
             });
 
-        if ($user && ! $user->isSuperAdmin() && $user->organizer_id) {
-            $query->whereHas('category.event', function ($q) use ($user) {
-                $q->where('organizer_id', $user->organizer_id);
-            });
+        if ($user && ! $user->isSuperAdmin()) {
+            if ($user->organizer_id) {
+                $query->whereHas('category.event', function ($q) use ($user) {
+                    $q->where('organizer_id', $user->organizer_id);
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         if ($this->selectedEventId) {
@@ -288,10 +296,14 @@ class RpcScanner extends Page
         $query = Participant::with(['category.event', 'jerseySize', 'rpcClaimedBy'])
             ->where('is_rpc_claimed', true);
 
-        if ($user && ! $user->isSuperAdmin() && $user->organizer_id) {
-            $query->whereHas('category.event', function ($q) use ($user) {
-                $q->where('organizer_id', $user->organizer_id);
-            });
+        if ($user && ! $user->isSuperAdmin()) {
+            if ($user->organizer_id) {
+                $query->whereHas('category.event', function ($q) use ($user) {
+                    $q->where('organizer_id', $user->organizer_id);
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         if ($this->selectedEventId) {

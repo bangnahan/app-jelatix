@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class EventResource extends Resource
@@ -36,13 +37,14 @@ class EventResource extends Resource
                                     ->relationship('organizer', 'name')
                                     ->searchable()
                                     ->preload()
-                                    ->default(fn () => auth()->user()?->organizer_id ?: 1)
+                                    ->default(fn () => auth()->user()?->organizer_id)
                                     ->visible(fn () => auth()->user()?->isSuperAdmin())
                                     ->required(),
 
                                 Forms\Components\Hidden::make('organizer_id')
-                                    ->default(fn () => auth()->user()?->organizer_id ?: 1)
-                                    ->hidden(fn () => auth()->user()?->isSuperAdmin()),
+                                    ->default(fn () => auth()->user()?->organizer_id)
+                                    ->hidden(fn () => auth()->user()?->isSuperAdmin())
+                                    ->required(),
 
                                 Forms\Components\TextInput::make('title')
                                     ->label('Nama Event Lari')
@@ -328,6 +330,22 @@ class EventResource extends Resource
     public static function getRelations(): array
     {
         return [];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if ($user && ! $user->isSuperAdmin()) {
+            if ($user->organizer_id) {
+                $query->where('organizer_id', $user->organizer_id);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        return $query;
     }
 
     public static function getPages(): array

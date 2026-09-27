@@ -15,6 +15,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -57,11 +58,29 @@ class ParticipantResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('event_category_id')
                             ->label('Kategori Lari')
-                            ->relationship('category', 'name')
+                            ->relationship('category', 'name', function (Builder $query) {
+                                $user = auth()->user();
+                                if ($user && ! $user->isSuperAdmin()) {
+                                    if ($user->organizer_id) {
+                                        $query->whereHas('event', fn ($q) => $q->where('organizer_id', $user->organizer_id));
+                                    } else {
+                                        $query->whereRaw('1 = 0');
+                                    }
+                                }
+                            })
                             ->required(),
                         Forms\Components\Select::make('jersey_size_id')
                             ->label('Ukuran Jersey')
-                            ->relationship('jerseySize', 'size_name')
+                            ->relationship('jerseySize', 'size_name', function (Builder $query) {
+                                $user = auth()->user();
+                                if ($user && ! $user->isSuperAdmin()) {
+                                    if ($user->organizer_id) {
+                                        $query->whereHas('event', fn ($q) => $q->where('organizer_id', $user->organizer_id));
+                                    } else {
+                                        $query->whereRaw('1 = 0');
+                                    }
+                                }
+                            })
                             ->required(),
                         Forms\Components\TextInput::make('full_name')
                             ->label('Nama Lengkap')
@@ -191,7 +210,16 @@ class ParticipantResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('event_category_id')
                     ->label('Kategori Lari')
-                    ->relationship('category', 'name'),
+                    ->relationship('category', 'name', function (Builder $query) {
+                        $user = auth()->user();
+                        if ($user && ! $user->isSuperAdmin()) {
+                            if ($user->organizer_id) {
+                                $query->whereHas('event', fn ($q) => $q->where('organizer_id', $user->organizer_id));
+                            } else {
+                                $query->whereRaw('1 = 0');
+                            }
+                        }
+                    }),
 
                 Tables\Filters\TernaryFilter::make('is_vip')
                     ->label('Hanya Tamu VVIP'),
@@ -433,33 +461,43 @@ class ParticipantResource extends Resource
                                 'QR_TOKEN',
                             ]);
 
-                            Participant::with(['category', 'jerseySize'])
+                            $query = Participant::with(['category', 'jerseySize'])
                                 ->whereNotNull('bib_number')
-                                ->orderBy('bib_number', 'asc')
-                                ->chunk(100, function ($participants) use ($handle) {
-                                    foreach ($participants as $p) {
-                                        fputcsv($handle, [
-                                            $p->bib_number,
-                                            $p->bib_name,
-                                            $p->full_name,
-                                            $p->category?->name,
-                                            $p->category?->distance_km,
-                                            $p->gender,
-                                            $p->birth_date?->format('Y-m-d'),
-                                            $p->blood_type,
-                                            $p->jerseySize?->size_name,
-                                            $p->phone,
-                                            $p->email,
-                                            $p->emergency_contact_name,
-                                            $p->emergency_contact_phone,
-                                            $p->emergency_contact_relation,
-                                            $p->medical_conditions,
-                                            $p->is_vip ? 'VIP' : 'REGULER',
-                                            $p->is_rpc_claimed ? 'SUDAH_KLAIM' : 'BELUM_KLAIM',
-                                            $p->qr_token,
-                                        ]);
-                                    }
-                                });
+                                ->orderBy('bib_number', 'asc');
+
+                            $user = auth()->user();
+                            if ($user && ! $user->isSuperAdmin()) {
+                                if ($user->organizer_id) {
+                                    $query->whereHas('category.event', fn ($q) => $q->where('organizer_id', $user->organizer_id));
+                                } else {
+                                    $query->whereRaw('1 = 0');
+                                }
+                            }
+
+                            $query->chunk(100, function ($participants) use ($handle) {
+                                foreach ($participants as $p) {
+                                    fputcsv($handle, [
+                                        $p->bib_number,
+                                        $p->bib_name,
+                                        $p->full_name,
+                                        $p->category?->name,
+                                        $p->category?->distance_km,
+                                        $p->gender,
+                                        $p->birth_date?->format('Y-m-d'),
+                                        $p->blood_type,
+                                        $p->jerseySize?->size_name,
+                                        $p->phone,
+                                        $p->email,
+                                        $p->emergency_contact_name,
+                                        $p->emergency_contact_phone,
+                                        $p->emergency_contact_relation,
+                                        $p->medical_conditions,
+                                        $p->is_vip ? 'VIP' : 'REGULER',
+                                        $p->is_rpc_claimed ? 'SUDAH_KLAIM' : 'BELUM_KLAIM',
+                                        $p->qr_token,
+                                    ]);
+                                }
+                            });
 
                             fclose($handle);
                         }, $filename, $headers);
@@ -473,7 +511,19 @@ class ParticipantResource extends Resource
                     ->form([
                         Forms\Components\Select::make('category_id')
                             ->label('Pilih Kategori Lari')
-                            ->options(EventCategory::pluck('name', 'id'))
+                            ->options(function () {
+                                $user = auth()->user();
+                                $query = EventCategory::query();
+                                if ($user && ! $user->isSuperAdmin()) {
+                                    if ($user->organizer_id) {
+                                        $query->whereHas('event', fn ($q) => $q->where('organizer_id', $user->organizer_id));
+                                    } else {
+                                        $query->whereRaw('1 = 0');
+                                    }
+                                }
+
+                                return $query->pluck('name', 'id');
+                            })
                             ->required(),
                         Forms\Components\Select::make('sort_by')
                             ->label('Kriteria Pengurutan')
@@ -491,7 +541,16 @@ class ParticipantResource extends Resource
                             ])->default('asc')->required(),
                     ])
                     ->action(function (array $data, BibGeneratorService $bibService) {
-                        $category = EventCategory::findOrFail($data['category_id']);
+                        $user = auth()->user();
+                        $categoryQuery = EventCategory::query();
+                        if ($user && ! $user->isSuperAdmin()) {
+                            if ($user->organizer_id) {
+                                $categoryQuery->whereHas('event', fn ($q) => $q->where('organizer_id', $user->organizer_id));
+                            } else {
+                                $categoryQuery->whereRaw('1 = 0');
+                            }
+                        }
+                        $category = $categoryQuery->findOrFail($data['category_id']);
                         $remapped = $bibService->bulkRemapBibs($category, $data['sort_by'], $data['direction']);
 
                         Notification::make()
@@ -511,6 +570,24 @@ class ParticipantResource extends Resource
     public static function getRelations(): array
     {
         return [];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if ($user && ! $user->isSuperAdmin()) {
+            if ($user->organizer_id) {
+                $query->whereHas('category.event', function (Builder $q) use ($user) {
+                    $q->where('organizer_id', $user->organizer_id);
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        return $query;
     }
 
     public static function getPages(): array

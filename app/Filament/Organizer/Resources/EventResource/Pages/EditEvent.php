@@ -16,4 +16,15 @@ class EditEvent extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $user = auth()->user();
+
+        if ($user && ! $user->isSuperAdmin()) {
+            $data['organizer_id'] = $user->organizer_id;
+        }
+
+        return $data;
+    }
 }
