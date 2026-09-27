@@ -52,7 +52,19 @@ class PublicTicketController extends Controller
     {
         $participant = Participant::where('qr_token', $token)
             ->with(['order', 'category.event', 'jerseySize'])
-            ->firstOrFail();
+            ->first();
+
+        // Fallback: jika token adalah BIB number atau kode invoice pendaftaran
+        if (!$participant) {
+            $participant = Participant::where('bib_number', $token)
+                ->orWhereHas('order', fn ($q) => $q->where('order_code', $token))
+                ->with(['order', 'category.event', 'jerseySize'])
+                ->first();
+        }
+
+        if (!$participant) {
+            abort(404, 'Tiket peserta tidak ditemukan. Pastikan pembayaran pendaftaran telah terverifikasi lunas.');
+        }
 
         $pdfBinary = $this->ticketPdfService->generateTicketPdf($participant);
 
