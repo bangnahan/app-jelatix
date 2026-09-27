@@ -15,3 +15,4 @@ Route::post('/tripay/callback', [TripayWebhookController::class, 'handle'])->nam
 
 // GitHub Auto-Deploy Webhook (harus bebas CSRF)
 Route::post('/deploy', [DeployWebhookController::class, 'handle'])->name('api.deploy');
+Route::post('/webhooks/deploy', [DeployWebhookController::class, 'handle'])->name('api.webhooks.deploy');
