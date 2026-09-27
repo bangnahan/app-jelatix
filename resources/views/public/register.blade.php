@@ -620,12 +620,18 @@
             // Opsi Kategori
             let categoryOptions = categoriesData.map(cat => {
                 const formattedPrice = new Intl.NumberFormat('id-ID').format(cat.normal_price);
-                return `<option value="${cat.id}" data-price="${cat.normal_price}" data-name="${cat.name}">${cat.name} (${cat.distance_km} KM) - Rp ${formattedPrice} [Sisa ${cat.quota - cat.slots_taken}]</option>`;
+                const sisa = Math.max(0, cat.quota - cat.slots_taken);
+                const disabled = sisa <= 0 ? 'disabled' : '';
+                const quotaBadge = sisa > 0 ? `(Sisa ${sisa} slot)` : `[SLOT HABIS]`;
+                return `<option value="${cat.id}" data-price="${cat.normal_price}" data-name="${cat.name}" ${disabled}>${cat.name} (${cat.distance_km} KM) - Rp ${formattedPrice} ${quotaBadge}</option>`;
             }).join('');
 
             // Opsi Jersey
             let jerseyOptions = jerseySizesData.map(j => {
-                return `<option value="${j.id}">${j.size_name} (${j.gender_type.toUpperCase()}) - Stok: ${j.stock - j.allocated_stock}</option>`;
+                const sisa = Math.max(0, j.stock - j.allocated_stock);
+                const disabled = sisa <= 0 ? 'disabled' : '';
+                const stockBadge = sisa > 0 ? `(Tersedia: ${sisa} pcs)` : `[STOK HABIS]`;
+                return `<option value="${j.id}" ${disabled}>${j.size_name} - ${j.gender_type.toUpperCase()} ${stockBadge}</option>`;
             }).join('');
 
             // Opsi Custom Fields
@@ -706,9 +712,12 @@
 
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
-                                <label class="text-xs font-bold text-amber-400">Pilih Ukuran Jersey Lari *</label>
-                                <button type="button" onclick="document.getElementById('sizeChartModal').classList.remove('hidden')" class="text-[11px] text-sky-400 hover:underline">
-                                    Size Chart (cm)
+                                <label class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                                    <span>Ukuran Jersey Lari *</span>
+                                </label>
+                                <button type="button" onclick="document.getElementById('sizeChartModal').classList.remove('hidden')" class="inline-flex items-center gap-1 text-[11px] text-sky-400 hover:text-sky-300 font-semibold underline underline-offset-2 cursor-pointer">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span>Panduan Ukuran (cm)</span>
                                 </button>
                             </div>
                             <select name="participants[${index}][jersey_size_id]" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 sm:py-2.5 text-base sm:text-xs text-white font-semibold outline-none focus:border-amber-400">
