@@ -140,6 +140,95 @@ class EventResource extends Resource
                                     ->columnSpanFull()
                                     ->default('Dengan ini saya menyatakan bahwa saya dalam kondisi fisik yang sehat dan siap mengikuti lomba lari ini. Saya membebaskan panitia penyelenggara dan platform tiket dari segala tuntutan atas cedera atau gangguan kesehatan selama perlombaan.'),
                             ])->columns(2),
+
+                        Forms\Components\Tabs\Tab::make('Kategori Lari')
+                            ->schema([
+                                Forms\Components\Repeater::make('categories')
+                                    ->relationship('categories')
+                                    ->label('Kategori Lomba (5K, 10K, 21K, 42K, dll)')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('name')
+                                            ->label('Nama Kategori')
+                                            ->placeholder('Contoh: 10K Open')
+                                            ->required(),
+                                        Forms\Components\TextInput::make('distance_km')
+                                            ->label('Jarak (KM)')
+                                            ->numeric()
+                                            ->step(0.01)
+                                            ->required(),
+                                        Forms\Components\TextInput::make('normal_price')
+                                            ->label('Harga Normal (Rp)')
+                                            ->numeric()
+                                            ->prefix('Rp')
+                                            ->required(),
+                                        Forms\Components\TextInput::make('quota')
+                                            ->label('Kuota Slot')
+                                            ->numeric()
+                                            ->default(500)
+                                            ->required(),
+                                        Forms\Components\TextInput::make('bib_prefix')
+                                            ->label('Prefix BIB')
+                                            ->placeholder('Contoh: 10K')
+                                            ->maxLength(10),
+                                        Forms\Components\Toggle::make('is_active')
+                                            ->label('Buka')
+                                            ->default(true),
+                                    ])
+                                    ->columns(6)
+                                    ->columnSpanFull()
+                                    ->addActionLabel('+ Tambah Kategori Lari'),
+                            ]),
+
+                        Forms\Components\Tabs\Tab::make('Ukuran Jersey')
+                            ->schema([
+                                Forms\Components\Repeater::make('jerseySizes')
+                                    ->relationship('jerseySizes')
+                                    ->label('Pilihan Ukuran Jersey Lari (XS sampai 5XL)')
+                                    ->schema([
+                                        Forms\Components\Select::make('size_name')
+                                            ->label('Ukuran')
+                                            ->options([
+                                                'XS' => 'XS',
+                                                'S' => 'S',
+                                                'M' => 'M',
+                                                'L' => 'L',
+                                                'XL' => 'XL',
+                                                'XXL' => 'XXL (2XL)',
+                                                '3XL' => '3XL',
+                                                '4XL' => '4XL',
+                                                '5XL' => '5XL',
+                                            ])
+                                            ->required(),
+
+                                        Forms\Components\Select::make('gender_type')
+                                            ->label('Tipe Gender')
+                                            ->options([
+                                                'unisex' => 'Unisex',
+                                                'male' => 'Pria (Men)',
+                                                'female' => 'Wanita (Women)',
+                                            ])
+                                            ->default('unisex')
+                                            ->required(),
+
+                                        Forms\Components\TextInput::make('chest_width_cm')
+                                            ->label('Lebar Dada (cm)')
+                                            ->numeric(),
+
+                                        Forms\Components\TextInput::make('body_length_cm')
+                                            ->label('Panjang Baju (cm)')
+                                            ->numeric(),
+
+                                        Forms\Components\TextInput::make('stock')
+                                            ->label('Total Stok')
+                                            ->numeric()
+                                            ->default(100)
+                                            ->required(),
+                                    ])
+                                    ->columns(5)
+                                    ->columnSpanFull()
+                                    ->addActionLabel('+ Tambah Pilihan Ukuran')
+                                    ->helperText('Pilihan ukuran jersey lomba dari XS hingga 5XL dengan panduan ukuran cm dan alokasi stok.'),
+                            ]),
                     ])->columnSpanFull(),
             ]);
     }
