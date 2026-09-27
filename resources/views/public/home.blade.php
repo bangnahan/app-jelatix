@@ -102,30 +102,39 @@
                 @forelse($events as $event)
                     <div class="bg-slate-900/80 border border-white/10 rounded-2xl overflow-hidden hover:border-sky-500/50 transition duration-300 flex flex-col justify-between shadow-2xl">
                         <div>
-                            <!-- Banner with Cover Image -->
-                            <div 
-                                class="h-44 sm:h-48 relative p-5 sm:p-6 flex flex-col justify-between bg-cover bg-center overflow-hidden"
+                            <!-- Card Cover Image Segment -->
+                            <div class="h-44 sm:h-48 relative overflow-hidden bg-slate-950 group">
                                 @if($event->banner_path)
-                                    style="background-image: linear-gradient(to top, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.45) 50%, rgba(15, 23, 42, 0.6) 100%), url('{{ asset('storage/' . $event->banner_path) }}');"
+                                    <img 
+                                        src="{{ asset('storage/' . $event->banner_path) }}" 
+                                        alt="{{ $event->title }}" 
+                                        class="w-full h-full object-cover object-center group-hover:scale-105 transition duration-500"
+                                    >
                                 @else
-                                    style="background: linear-gradient(135deg, #0c4a6e 0%, #1e1b4b 50%, #0f172a 100%);"
+                                    <img 
+                                        src="https://images.unsplash.com/photo-1530549387789-4c1017266635?w=700&auto=format&fit=crop&q=80" 
+                                        alt="{{ $event->title }}" 
+                                        class="w-full h-full object-cover object-center opacity-75 group-hover:scale-105 transition duration-500"
+                                    >
                                 @endif
-                            >
-                                <div class="flex justify-between items-start relative z-10">
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none"></div>
+
+                                <div class="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-emerald-500/90 text-white backdrop-blur-md shadow-md">
                                         Registrasi Dibuka
                                     </span>
-                                    <span class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-mono bg-black/50 text-slate-300 backdrop-blur-md border border-white/10">
+                                    <span class="px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-mono font-semibold bg-slate-950/80 text-sky-300 backdrop-blur-md border border-white/10 shadow-md">
                                         {{ $event->event_start_date->format('d M Y') }}
                                     </span>
-                                </div>
-                                <div class="relative z-10">
-                                    <span class="text-[11px] sm:text-xs text-sky-400 font-semibold block uppercase tracking-wider drop-shadow-sm">{{ $event->organizer?->name }}</span>
-                                    <h3 class="text-lg sm:text-xl font-bold text-white line-clamp-1 drop-shadow-md">{{ $event->title }}</h3>
                                 </div>
                             </div>
 
                             <div class="p-4 sm:p-6 space-y-3.5 sm:space-y-4">
+                                <div>
+                                    <span class="text-[11px] text-sky-400 font-semibold block uppercase tracking-wider">{{ $event->organizer?->name }}</span>
+                                    <h3 class="text-lg sm:text-xl font-bold text-white line-clamp-1 mt-0.5">{{ $event->title }}</h3>
+                                </div>
+
                                 <div class="flex items-center gap-2 text-xs text-slate-300">
                                     <svg class="w-4 h-4 text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                     <span class="truncate">{{ $event->race_location_name }}</span>
