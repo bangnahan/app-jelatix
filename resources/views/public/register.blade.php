@@ -34,6 +34,70 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+        .rich-content {
+            color: #cbd5e1;
+            font-size: 0.925rem;
+            line-height: 1.75;
+        }
+        .rich-content p {
+            margin-bottom: 0.875rem;
+        }
+        .rich-content p:last-child {
+            margin-bottom: 0;
+        }
+        .rich-content h1, .rich-content h2, .rich-content h3, .rich-content h4 {
+            color: #ffffff;
+            font-weight: 700;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+        .rich-content h1 { font-size: 1.4rem; }
+        .rich-content h2 { font-size: 1.2rem; }
+        .rich-content h3 { font-size: 1.05rem; }
+        .rich-content ul, .rich-content ol {
+            margin-top: 0.5rem;
+            margin-bottom: 0.875rem;
+            padding-left: 1.5rem;
+        }
+        .rich-content ul {
+            list-style-type: disc;
+        }
+        .rich-content ol {
+            list-style-type: decimal;
+        }
+        .rich-content li {
+            margin-bottom: 0.35rem;
+        }
+        .rich-content strong, .rich-content b {
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .rich-content em, .rich-content i {
+            font-style: italic;
+        }
+        .rich-content a {
+            color: #38bdf8;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+        .rich-content a:hover {
+            color: #7dd3fc;
+        }
+        .rich-content blockquote {
+            border-left: 3px solid #38bdf8;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #94a3b8;
+            font-style: italic;
+        }
+        .rich-content img {
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -80,7 +144,13 @@
                 <span class="text-xs text-slate-400 font-medium">&bull; Diselenggarakan oleh <strong class="text-slate-200">{{ $event->organizer?->name }}</strong></span>
             </div>
 
-            <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-4 leading-tight tracking-tight">{{ $event->title }}</h1>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3 leading-tight tracking-tight">{{ $event->title }}</h1>
+
+            @if($event->short_description)
+                <p class="text-sm sm:text-base text-slate-300 mb-5 leading-relaxed">
+                    {{ $event->short_description }}
+                </p>
+            @endif
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-4 border-t border-slate-800 text-xs sm:text-sm">
                 <div class="flex items-center gap-2.5 text-slate-300 bg-white/5 border border-white/5 rounded-xl px-3.5 py-2.5">
@@ -108,6 +178,72 @@
                 </div>
             </div>
         </div>
+
+        <!-- 3. DESKRIPSI LENGKAP & INFORMASI RUTE -->
+        @if($event->full_description)
+            <div class="bg-slate-900/90 border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-7 md:p-8 shadow-xl mb-6 sm:mb-8">
+                <div class="flex items-center gap-2 mb-3 text-sky-400 font-bold text-xs uppercase tracking-wider">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Informasi Perlombaan</span>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold text-white mb-4">Deskripsi Lengkap & Info Rute</h2>
+                <div class="rich-content">
+                    {!! $event->full_description !!}
+                </div>
+            </div>
+        @endif
+
+        <!-- 4. LOKASI VENUE & PENGAMBILAN RACE PACK (RPC) -->
+        @if($event->race_location_address || $event->race_location_map_url || $event->rpc_location || $event->rpc_start_date)
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 sm:mb-8">
+                @if($event->race_location_address || $event->race_location_map_url || $event->race_location_name)
+                    <div class="bg-slate-900/80 border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-rose-400 font-bold text-xs uppercase tracking-wider mb-2.5">
+                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <span>Titik Kumpul & Lokasi Venue</span>
+                            </div>
+                            <h3 class="font-bold text-white text-base mb-1.5">{{ $event->race_location_name }}</h3>
+                            @if($event->race_location_address)
+                                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-3">{{ $event->race_location_address }}</p>
+                            @endif
+                        </div>
+                        @if($event->race_location_map_url)
+                            <div class="pt-2">
+                                <a href="{{ $event->race_location_map_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-400 hover:text-sky-300 hover:underline transition">
+                                    <span>Buka Petunjuk Google Maps</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                @if($event->rpc_location || $event->rpc_start_date)
+                    <div class="bg-slate-900/80 border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider mb-2.5">
+                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                <span>Pengambilan Race Pack (RPC)</span>
+                            </div>
+                            @if($event->rpc_start_date)
+                                <p class="text-xs sm:text-sm text-slate-200 font-bold mb-1.5 flex items-center gap-1.5">
+                                    <span class="text-emerald-400">📅</span>
+                                    <span>{{ $event->rpc_start_date->format('d M Y, H:i') }} WIB</span>
+                                    @if($event->rpc_end_date)
+                                        <span class="text-slate-400 font-normal">s/d</span>
+                                        <span>{{ $event->rpc_end_date->format('d M Y, H:i') }} WIB</span>
+                                    @endif
+                                </p>
+                            @endif
+                            @if($event->rpc_location)
+                                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">{{ $event->rpc_location }}</p>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @endif
 
         @if($errors->any())
             <div class="bg-rose-500/15 border-2 border-rose-500/40 text-rose-200 px-4 sm:px-5 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm mb-6 sm:mb-8">
