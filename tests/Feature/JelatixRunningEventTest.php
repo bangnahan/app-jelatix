@@ -2,15 +2,22 @@
 
 namespace Tests\Feature;
 
-use App\Console\Commands\ReleaseExpiredOrdersCommand;
+use App\Filament\Organizer\Pages\RpcScanner;
+use App\Jobs\SendPaymentPendingEmailJob;
 use App\Models\Event;
 use App\Models\EventCategory;
+use App\Models\JerseySize;
 use App\Models\Order;
 use App\Models\Organizer;
+use App\Models\OrganizerPayout;
 use App\Models\Participant;
+use App\Models\User;
 use App\Services\BibGeneratorService;
-use App\Services\TicketPdfService;
+use App\Services\MailketingService;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class JelatixRunningEventTest extends TestCase
@@ -18,7 +25,9 @@ class JelatixRunningEventTest extends TestCase
     use RefreshDatabase;
 
     protected Organizer $organizer;
+
     protected Event $event;
+
     protected EventCategory $category;
 
     protected function setUp(): void
@@ -58,7 +67,7 @@ class JelatixRunningEventTest extends TestCase
 
     public function test_auto_assign_bib_skips_reserved_vvip_numbers(): void
     {
-        $bibService = new BibGeneratorService();
+        $bibService = new BibGeneratorService;
 
         $participant = Participant::create([
             'event_category_id' => $this->category->id,
@@ -81,7 +90,7 @@ class JelatixRunningEventTest extends TestCase
 
     public function test_custom_vvip_bib_is_protected_from_bulk_remapping(): void
     {
-        $bibService = new BibGeneratorService();
+        $bibService = new BibGeneratorService;
 
         $order = Order::create([
             'event_id' => $this->event->id,
@@ -304,7 +313,7 @@ class JelatixRunningEventTest extends TestCase
 
     public function test_public_runner_can_register_and_checkout_to_tripay(): void
     {
-        $jersey = \App\Models\JerseySize::create([
+        $jersey = JerseySize::create([
             'event_id' => $this->event->id,
             'size_name' => 'L',
             'gender_type' => 'unisex',
@@ -359,7 +368,7 @@ class JelatixRunningEventTest extends TestCase
 
     public function test_buyer_can_register_multiple_runners_in_single_order(): void
     {
-        $category5k = \App\Models\EventCategory::create([
+        $category5k = EventCategory::create([
             'event_id' => $this->event->id,
             'name' => '5K Fun Run',
             'distance_km' => 5.0,
@@ -370,7 +379,7 @@ class JelatixRunningEventTest extends TestCase
             'is_active' => true,
         ]);
 
-        $jerseyM = \App\Models\JerseySize::create([
+        $jerseyM = JerseySize::create([
             'event_id' => $this->event->id,
             'size_name' => 'M',
             'gender_type' => 'unisex',
@@ -378,7 +387,7 @@ class JelatixRunningEventTest extends TestCase
             'allocated_stock' => 0,
         ]);
 
-        $jerseyL = \App\Models\JerseySize::create([
+        $jerseyL = JerseySize::create([
             'event_id' => $this->event->id,
             'size_name' => 'L',
             'gender_type' => 'unisex',
@@ -467,11 +476,11 @@ class JelatixRunningEventTest extends TestCase
 
     public function test_mailketing_service_sends_email_with_configured_credentials(): void
     {
-        \Illuminate\Support\Facades\Http::fake([
-            'api.mailketing.co.id/*' => \Illuminate\Support\Facades\Http::response(['status' => 'success'], 200),
+        Http::fake([
+            'api.mailketing.co.id/*' => Http::response(['status' => 'success'], 200),
         ]);
 
-        $mailketing = new \App\Services\MailketingService();
+        $mailketing = new MailketingService;
         $result = $mailketing->sendEmail(
             recipientEmail: 'runner@jelatix.com',
             recipientName: 'Budi Runner',
@@ -482,7 +491,7 @@ class JelatixRunningEventTest extends TestCase
 
         $this->assertTrue($result);
 
-        \Illuminate\Support\Facades\Http::assertSent(function ($request) {
+        Http::assertSent(function ($request) {
             return $request->url() === 'https://api.mailketing.co.id/api/v1/send'
                 && $request['from_email'] === 'hi@jelatix.com'
                 && $request['recipient'] === 'runner@jelatix.com'
@@ -662,7 +671,7 @@ class JelatixRunningEventTest extends TestCase
             'expired_at' => now()->addMinutes(30),
         ]);
 
-        $jersey = \App\Models\JerseySize::create([
+        $jersey = JerseySize::create([
             'event_id' => $this->event->id,
             'size_name' => 'XL',
             'gender_type' => 'unisex',
@@ -702,7 +711,7 @@ class JelatixRunningEventTest extends TestCase
         $this->assertStringContainsString('BUDI S', $viewContent);
 
         // Run the Job directly
-        $mockMailketing = \Mockery::mock(\App\Services\MailketingService::class);
+        $mockMailketing = \Mockery::mock(MailketingService::class);
         $mockMailketing->shouldReceive('sendEmail')
             ->once()
             ->withArgs(function ($recipientEmail, $recipientName, $subject, $htmlContent) {
@@ -714,13 +723,13 @@ class JelatixRunningEventTest extends TestCase
             })
             ->andReturn(true);
 
-        $job = new \App\Jobs\SendPaymentPendingEmailJob($order);
+        $job = new SendPaymentPendingEmailJob($order);
         $job->handle($mockMailketing);
     }
 
     public function test_superadmin_can_manage_organizers_and_payouts(): void
     {
-        $superadmin = \App\Models\User::create([
+        $superadmin = User::create([
             'name' => 'Super Admin',
             'email' => 'superadmin@jelatix.com',
             'password' => bcrypt('password'),
@@ -760,7 +769,7 @@ class JelatixRunningEventTest extends TestCase
         $resCreatePayout->assertStatus(200);
 
         // 4. Admin can create OrganizerPayout
-        $payout = \App\Models\OrganizerPayout::create([
+        $payout = OrganizerPayout::create([
             'organizer_id' => $newOrg->id,
             'event_id' => $this->event->id,
             'milestone_phase' => 'phase_1_closed_reg',
@@ -784,7 +793,7 @@ class JelatixRunningEventTest extends TestCase
         $this->assertEquals($superadmin->id, $payout->fresh()->approved_by_user_id);
 
         // 6. Test PIC user account creation under organizer
-        $picUser = \App\Models\User::create([
+        $picUser = User::create([
             'organizer_id' => $newOrg->id,
             'name' => 'Bambang PIC',
             'email' => 'bambang@jakartarunning.id',
@@ -808,7 +817,84 @@ class JelatixRunningEventTest extends TestCase
         $this->assertStringContainsString('Secret123!', $emailHtml);
         $this->assertStringContainsString('https://app.jelatix.com/organizer', $emailHtml);
     }
+
+    public function test_scanner_is_not_displayed_on_homepage_and_crew_redirects_to_eo_panel(): void
+    {
+        // 1. Cek halaman depan tidak lagi menampilkan Scanner RPC
+        $homeRes = $this->get('/');
+        $homeRes->assertStatus(200);
+        $homeRes->assertDontSee('Scanner RPC');
+        $homeRes->assertDontSee('Scanner Kru');
+        $homeRes->assertDontSee('href="/crew"', false);
+
+        // 2. Akses /crew dialihkan ke panel EO
+        $crewRes = $this->get('/crew');
+        $crewRes->assertRedirect('/organizer/rpc-scanner');
+    }
+
+    public function test_organizer_and_crew_can_access_rpc_scanner_in_eo_panel(): void
+    {
+        $eoUser = User::create([
+            'organizer_id' => $this->organizer->id,
+            'name' => 'EO Director Test',
+            'email' => 'director@testeo.com',
+            'password' => bcrypt('password'),
+            'role' => 'organizer_owner',
+            'is_active' => true,
+        ]);
+
+        $crewUser = User::create([
+            'organizer_id' => $this->organizer->id,
+            'name' => 'Crew Scanner Test',
+            'email' => 'crew@testeo.com',
+            'password' => bcrypt('password'),
+            'role' => 'scanner_crew',
+            'is_active' => true,
+        ]);
+
+        $panel = Filament::getPanel('organizer');
+
+        // EO and Crew are allowed to access organizer panel
+        $this->assertTrue($eoUser->canAccessPanel($panel));
+        $this->assertTrue($crewUser->canAccessPanel($panel));
+
+        // Test EO Livewire RPC Scanner Page
+        $order = Order::create([
+            'event_id' => $this->event->id,
+            'order_code' => 'JLTX-RPC-TEST-1',
+            'customer_name' => 'Pelari Test RPC',
+            'customer_email' => 'pelari.rpc@test.com',
+            'customer_phone' => '081299998888',
+            'grand_total' => 250000,
+            'status' => 'paid',
+        ]);
+
+        $participant = Participant::create([
+            'order_id' => $order->id,
+            'event_category_id' => $this->category->id,
+            'full_name' => 'Pelari Test RPC',
+            'id_number' => '3171012345678901',
+            'gender' => 'male',
+            'birth_date' => '1995-05-15',
+            'phone' => '081299998888',
+            'email' => 'pelari.rpc@test.com',
+            'emergency_contact_name' => 'Ibu',
+            'emergency_contact_phone' => '081299990000',
+            'emergency_contact_relation' => 'Orang Tua',
+            'bib_number' => '10K2026',
+            'is_rpc_claimed' => false,
+        ]);
+
+        Livewire::actingAs($crewUser)
+            ->test(RpcScanner::class)
+            ->assertSuccessful()
+            ->call('verifyToken', '10K2026')
+            ->assertSet('participantData.bib_number', '10K2026')
+            ->assertSet('participantData.is_rpc_claimed', false)
+            ->call('claimRacePack')
+            ->assertSet('participantData.is_rpc_claimed', true);
+
+        $this->assertTrue($participant->fresh()->is_rpc_claimed);
+        $this->assertEquals($crewUser->id, $participant->fresh()->rpc_claimed_by_user_id);
+    }
 }
-
-
-

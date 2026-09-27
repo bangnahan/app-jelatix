@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 class ReleaseExpiredOrdersCommand extends Command
 {
     protected $signature = 'jelatix:release-expired-orders';
+
     protected $description = 'Batalkan order tertunda yang melebihi batas waktu (hold kuota) dan pulihkan slot tiket serta ukuran jersey';
 
     public function handle(): int
@@ -22,6 +23,7 @@ class ReleaseExpiredOrdersCommand extends Command
 
         if ($expiredOrders->isEmpty()) {
             $this->info('Tidak ada order kadaluarsa.');
+
             return Command::SUCCESS;
         }
 

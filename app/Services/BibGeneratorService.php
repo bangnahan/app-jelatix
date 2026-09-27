@@ -15,12 +15,12 @@ class BibGeneratorService
     public function autoAssignBib(Participant $participant): string
     {
         // Jika sudah memiliki nomor BIB kustom VVIP, jangan ubah
-        if ($participant->is_custom_bib && !empty($participant->bib_number)) {
+        if ($participant->is_custom_bib && ! empty($participant->bib_number)) {
             return $participant->bib_number;
         }
 
         $category = $participant->category;
-        if (!$category) {
+        if (! $category) {
             throw new Exception('Kategori lomba tidak ditemukan');
         }
 
@@ -38,19 +38,19 @@ class BibGeneratorService
 
             $candidateNum = $startNum;
             while (true) {
-                $candidateBib = $prefix . $candidateNum;
+                $candidateBib = $prefix.$candidateNum;
 
                 // Cek apakah nomor ini masuk ke daftar reservasi VVIP atau sudah terpakai
-                if (!in_array($candidateNum, $reservedPool) && 
-                    !in_array((string)$candidateNum, $reservedPool) && 
-                    !in_array($candidateBib, $existingBibs)) {
+                if (! in_array($candidateNum, $reservedPool) &&
+                    ! in_array((string) $candidateNum, $reservedPool) &&
+                    ! in_array($candidateBib, $existingBibs)) {
                     break;
                 }
 
                 $candidateNum++;
             }
 
-            $finalBib = $prefix . $candidateNum;
+            $finalBib = $prefix.$candidateNum;
             $participant->update(['bib_number' => $finalBib]);
 
             return $finalBib;
@@ -118,19 +118,19 @@ class BibGeneratorService
 
             foreach ($participants as $runner) {
                 while (true) {
-                    $candidateBib = $prefix . $currentNum;
+                    $candidateBib = $prefix.$currentNum;
 
                     // Lewati nomor jika masuk ke pool reservasi atau sudah dipakai oleh VVIP
-                    if (!in_array($currentNum, $reservedPool) &&
-                        !in_array((string)$currentNum, $reservedPool) &&
-                        !in_array($candidateBib, $lockedBibs)) {
+                    if (! in_array($currentNum, $reservedPool) &&
+                        ! in_array((string) $currentNum, $reservedPool) &&
+                        ! in_array($candidateBib, $lockedBibs)) {
                         break;
                     }
 
                     $currentNum++;
                 }
 
-                $runner->update(['bib_number' => $prefix . $currentNum]);
+                $runner->update(['bib_number' => $prefix.$currentNum]);
                 $currentNum++;
                 $count++;
             }

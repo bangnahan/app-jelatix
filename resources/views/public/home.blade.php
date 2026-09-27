@@ -49,11 +49,6 @@
                     <span class="hidden sm:inline">Cek Tiket & E-BIB</span>
                     <span class="sm:hidden">Tiket</span>
                 </a>
-                <a href="/crew" class="font-semibold text-slate-300 hover:text-white transition flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 rounded-lg hover:bg-white/5">
-                    <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
-                    <span class="hidden sm:inline">Scanner RPC</span>
-                    <span class="sm:hidden">Scan</span>
-                </a>
                 <a href="/organizer" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl transition">
                     <span class="hidden sm:inline">Portal EO</span>
                     <span class="sm:hidden">EO</span>
@@ -193,11 +188,11 @@
 
                 <div class="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6">
                     <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold mb-3 sm:mb-4 border border-emerald-400/30">
-                        RPC
+                        PDF
                     </div>
-                    <h3 class="text-base sm:text-lg font-bold text-white mb-1.5 sm:mb-2">Scanner Race Pack & Surat Kuasa</h3>
+                    <h3 class="text-base sm:text-lg font-bold text-white mb-1.5 sm:mb-2">E-Ticket & QR Code Instan</h3>
                     <p class="text-xs text-slate-400 leading-relaxed">
-                        Aplikasi scanner ponsel untuk kru lapangan. Menampilkan ukuran jersey dalam ukuran besar dan mendukung penyerahan kolektif via surat kuasa.
+                        Pengiriman tiket otomatis via email dengan barcode QR terenkripsi dan informasi detail race kit yang siap diunduh kapan saja oleh pelari.
                     </p>
                 </div>
 
@@ -222,7 +217,6 @@
             </div>
             <div class="flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-end">
                 <a href="/cek-tiket" class="hover:text-slate-300">Cek Tiket</a>
-                <a href="/crew" class="hover:text-slate-300">Scanner Kru</a>
                 <a href="/organizer" class="hover:text-slate-300">Login EO</a>
                 <a href="/admin" class="hover:text-slate-300">Superadmin</a>
             </div>

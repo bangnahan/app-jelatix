@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\OrganizerPayoutResource\Pages;
 
 use App\Filament\Resources\OrganizerPayoutResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateOrganizerPayout extends CreateRecord
@@ -15,6 +14,7 @@ class CreateOrganizerPayout extends CreateRecord
         if (in_array($data['status'] ?? '', ['approved', 'transferred'])) {
             $data['approved_by_user_id'] = auth()->id();
         }
+
         return $data;
     }
 }

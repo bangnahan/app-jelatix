@@ -26,7 +26,7 @@ class EventStatsOverview extends BaseWidget
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('primary'),
 
-            Stat::make('Total Pendapatan Tiket', 'Rp ' . number_format($totalRevenue, 0, ',', '.'))
+            Stat::make('Total Pendapatan Tiket', 'Rp '.number_format($totalRevenue, 0, ',', '.'))
                 ->description('Dana Masuk Bersih dari Peserta')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success'),

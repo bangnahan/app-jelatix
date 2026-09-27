@@ -32,7 +32,7 @@ class PublicRegistrationController extends Controller
     public function show(string $slug)
     {
         $event = Event::where('slug', $slug)
-            ->with(['categories' => fn($q) => $q->where('is_active', true), 'jerseySizes', 'customFields'])
+            ->with(['categories' => fn ($q) => $q->where('is_active', true), 'jerseySizes', 'customFields'])
             ->firstOrFail();
 
         $paymentChannels = $this->tripayService->getPaymentChannels();
@@ -125,7 +125,7 @@ class PublicRegistrationController extends Controller
                     'medical_conditions' => $request->input('medical_conditions'),
                     'estimated_finish_time' => $request->input('estimated_finish_time'),
                     'custom_fields' => $request->input('custom_fields'),
-                ]
+                ],
             ];
         }
 
@@ -180,7 +180,7 @@ class PublicRegistrationController extends Controller
 
                 $platformFee = 5000;
                 $grandTotal = $totalTicketsPrice + $platformFee;
-                $orderCode = 'JLTX-' . date('Ymd') . '-' . strtoupper(Str::random(5));
+                $orderCode = 'JLTX-'.date('Ymd').'-'.strtoupper(Str::random(5));
 
                 $order = Order::create([
                     'event_id' => $event->id,
@@ -209,9 +209,9 @@ class PublicRegistrationController extends Controller
 
                 // 4. Buat data Participant per pelari
                 foreach ($participantsData as $pData) {
-                    $rawBib = !empty($pData['bib_name']) ? trim($pData['bib_name']) : trim($pData['full_name']);
+                    $rawBib = ! empty($pData['bib_name']) ? trim($pData['bib_name']) : trim($pData['full_name']);
                     $safeBibName = mb_substr(strtoupper($rawBib), 0, 40);
-                    $safeFinishTime = !empty($pData['estimated_finish_time']) ? mb_substr(trim($pData['estimated_finish_time']), 0, 45) : null;
+                    $safeFinishTime = ! empty($pData['estimated_finish_time']) ? mb_substr(trim($pData['estimated_finish_time']), 0, 45) : null;
 
                     Participant::create([
                         'order_id' => $order->id,
@@ -248,7 +248,7 @@ class PublicRegistrationController extends Controller
             SendPaymentPendingEmailJob::dispatchAfterResponse($order);
 
             // Jika Tripay mengembalikan checkout_url resmi, langsung alihkan calon peserta ke halaman pembayaran Tripay
-            if (!empty($tripayData['checkout_url']) && filter_var($tripayData['checkout_url'], FILTER_VALIDATE_URL) && !str_contains($tripayData['checkout_url'], url('/orders/'))) {
+            if (! empty($tripayData['checkout_url']) && filter_var($tripayData['checkout_url'], FILTER_VALIDATE_URL) && ! str_contains($tripayData['checkout_url'], url('/orders/'))) {
                 return redirect()->away($tripayData['checkout_url']);
             }
 
@@ -320,7 +320,7 @@ class PublicRegistrationController extends Controller
     {
         $order = Order::where('order_code', $orderCode)->firstOrFail();
 
-        if (!$order->isPaid()) {
+        if (! $order->isPaid()) {
             return redirect()->route('public.order.show', $orderCode)->withErrors(['error' => 'Pesanan belum lunas. Silakan lakukan pembayaran terlebih dahulu.']);
         }
 

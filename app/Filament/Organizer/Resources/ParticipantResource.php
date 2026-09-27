@@ -2,6 +2,7 @@
 
 namespace App\Filament\Organizer\Resources;
 
+use App\Filament\Organizer\Pages\RpcScanner;
 use App\Filament\Organizer\Resources\ParticipantResource\Pages;
 use App\Models\EventCategory;
 use App\Models\Participant;
@@ -14,7 +15,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ParticipantResource extends Resource
@@ -22,8 +23,11 @@ class ParticipantResource extends Resource
     protected static ?string $model = Participant::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
     protected static ?string $navigationLabel = 'Data Pelari & BIB';
+
     protected static ?string $navigationGroup = 'Manajemen Event Lari';
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -154,7 +158,7 @@ class ParticipantResource extends Resource
                 Tables\Columns\TextColumn::make('full_name')
                     ->label('Nama Lengkap')
                     ->searchable()
-                    ->description(fn (Participant $record) => $record->email . ' | ' . $record->phone),
+                    ->description(fn (Participant $record) => $record->email.' | '.$record->phone),
 
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Kategori')
@@ -243,7 +247,7 @@ class ParticipantResource extends Resource
                     ->color('gray')
                     ->action(function (Participant $record, TicketPdfService $ticketService): StreamedResponse {
                         $pdfBinary = $ticketService->generateTicketPdf($record);
-                        $filename = 'E-Ticket-' . ($record->bib_number ?: $record->id) . '.pdf';
+                        $filename = 'E-Ticket-'.($record->bib_number ?: $record->id).'.pdf';
 
                         return response()->streamDownload(function () use ($pdfBinary) {
                             echo $pdfBinary;
@@ -355,7 +359,7 @@ class ParticipantResource extends Resource
                     ->action(function (Participant $record, array $data, MailketingService $mailketing, TicketPdfService $ticketService) {
                         $oldName = $record->full_name;
                         $data['bib_name'] = strtoupper($data['bib_name']);
-                        $data['qr_token'] = \Illuminate\Support\Str::random(32);
+                        $data['qr_token'] = Str::random(32);
                         $record->update($data);
 
                         // Kirim email tiket baru ke peserta pengganti
@@ -388,13 +392,19 @@ class ParticipantResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->headerActions([
+                Tables\Actions\Action::make('open_scanner')
+                    ->label('Buka Scanner RPC')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('primary')
+                    ->url(fn () => RpcScanner::getUrl()),
+
                 // Header Action 1: Export CSV untuk Vendor Cetak BIB & Timing Chip
                 Tables\Actions\Action::make('export_vendor_csv')
                     ->label('Export Cetak BIB & Timing (CSV)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success')
                     ->action(function (): StreamedResponse {
-                        $filename = 'data-peserta-cetak-bib-' . date('Ymd-His') . '.csv';
+                        $filename = 'data-peserta-cetak-bib-'.date('Ymd-His').'.csv';
                         $headers = [
                             'Content-Type' => 'text/csv',
                             'Content-Disposition' => "attachment; filename=\"{$filename}\"",

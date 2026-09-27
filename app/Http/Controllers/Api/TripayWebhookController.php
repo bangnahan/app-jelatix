@@ -27,7 +27,7 @@ class TripayWebhookController extends Controller
         $signature = $request->header('X-Callback-Signature');
 
         // Validasi keaslian signature webhook Tripay
-        if (!$this->tripayService->validateCallbackSignature($rawJson, $signature)) {
+        if (! $this->tripayService->validateCallbackSignature($rawJson, $signature)) {
             Log::warning('Tripay Webhook: Invalid callback signature received.', [
                 'ip' => $request->ip(),
                 'signature' => $signature,
@@ -40,7 +40,7 @@ class TripayWebhookController extends Controller
         }
 
         $data = json_decode($rawJson, true);
-        if (!$data || !isset($data['merchant_ref'])) {
+        if (! $data || ! isset($data['merchant_ref'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid payload format',
@@ -74,8 +74,9 @@ class TripayWebhookController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        if (!$order) {
+        if (! $order) {
             Log::error("Tripay Webhook: Order {$merchantRef} not found.");
+
             return response()->json(['success' => false, 'message' => 'Order not found'], 404);
         }
 
@@ -124,7 +125,8 @@ class TripayWebhookController extends Controller
 
             return response()->json(['success' => true]);
         } catch (Exception $e) {
-            Log::error("Tripay Webhook Error [{$merchantRef}]: " . $e->getMessage());
+            Log::error("Tripay Webhook Error [{$merchantRef}]: ".$e->getMessage());
+
             return response()->json(['success' => false, 'message' => 'Server error'], 500);
         }
     }

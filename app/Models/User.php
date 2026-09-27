@@ -58,7 +58,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
@@ -67,7 +67,7 @@ class User extends Authenticatable implements FilamentUser
         }
 
         if ($panel->getId() === 'organizer') {
-            return $this->isSuperAdmin() || ($this->isOrganizer() && $this->organizer_id !== null);
+            return $this->isSuperAdmin() || (($this->isOrganizer() || $this->isScannerCrew()) && $this->organizer_id !== null);
         }
 
         return true;

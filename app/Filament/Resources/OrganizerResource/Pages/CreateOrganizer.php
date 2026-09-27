@@ -6,6 +6,7 @@ use App\Filament\Resources\OrganizerResource;
 use App\Models\User;
 use App\Services\MailketingService;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\Log;
 
 class CreateOrganizer extends CreateRecord
 {
@@ -16,11 +17,11 @@ class CreateOrganizer extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $this->userData = [
-            'create_user_account' => !empty($data['create_user_account']),
+            'create_user_account' => ! empty($data['create_user_account']),
             'pic_name' => $data['pic_name'] ?? null,
             'pic_email' => $data['pic_email'] ?? null,
             'pic_password' => $data['pic_password'] ?? null,
-            'send_credentials_email' => !empty($data['send_credentials_email']),
+            'send_credentials_email' => ! empty($data['send_credentials_email']),
         ];
 
         unset(
@@ -36,7 +37,7 @@ class CreateOrganizer extends CreateRecord
 
     protected function afterCreate(): void
     {
-        if ($this->userData && $this->userData['create_user_account'] && !empty($this->userData['pic_email'])) {
+        if ($this->userData && $this->userData['create_user_account'] && ! empty($this->userData['pic_email'])) {
             $user = User::create([
                 'organizer_id' => $this->record->id,
                 'name' => $this->userData['pic_name'] ?: $this->record->name,
@@ -47,7 +48,7 @@ class CreateOrganizer extends CreateRecord
             ]);
 
             if ($this->userData['send_credentials_email']) {
-                $loginUrl = rtrim(config('app.url', 'https://app.jelatix.com'), '/') . '/organizer';
+                $loginUrl = rtrim(config('app.url', 'https://app.jelatix.com'), '/').'/organizer';
                 if (str_contains($loginUrl, 'localhost') || str_contains($loginUrl, '127.0.0.1')) {
                     $loginUrl = 'https://app.jelatix.com/organizer';
                 }
@@ -68,7 +69,7 @@ class CreateOrganizer extends CreateRecord
                         htmlContent: $html
                     );
                 } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error("Gagal mengirim email kredensial EO: " . $e->getMessage());
+                    Log::error('Gagal mengirim email kredensial EO: '.$e->getMessage());
                 }
             }
         }

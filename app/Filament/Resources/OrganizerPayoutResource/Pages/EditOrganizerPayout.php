@@ -22,6 +22,7 @@ class EditOrganizerPayout extends EditRecord
         if (in_array($data['status'] ?? '', ['approved', 'transferred']) && empty($this->record->approved_by_user_id)) {
             $data['approved_by_user_id'] = auth()->id();
         }
+
         return $data;
     }
 }

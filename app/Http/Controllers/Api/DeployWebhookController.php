@@ -23,23 +23,25 @@ class DeployWebhookController extends Controller
         $isValid = false;
 
         if ($githubSignature) {
-            $computedHash = 'sha256=' . hash_hmac('sha256', $request->getContent(), $expectedSecret);
+            $computedHash = 'sha256='.hash_hmac('sha256', $request->getContent(), $expectedSecret);
             $isValid = hash_equals($computedHash, $githubSignature);
         } elseif ($providedSecret && hash_equals($expectedSecret, (string) $providedSecret)) {
             $isValid = true;
         }
 
-        if (!$isValid) {
+        if (! $isValid) {
             Log::warning('Auto-deploy: Unauthorized access attempt', [
                 'ip' => $request->ip(),
-                'has_signature' => !empty($githubSignature),
+                'has_signature' => ! empty($githubSignature),
             ]);
+
             return response()->json(['status' => 'error', 'message' => 'Unauthorized signature or secret'], 403);
         }
 
         // 2. Tangani event 'ping' saat pertama kali webhook ditambahkan di GitHub
         if ($request->header('X-GitHub-Event') === 'ping') {
             Log::info('GitHub Webhook: Ping event received and verified.');
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Pong! Webhook Jelatix terhubung dengan sukses ke GitHub.',
@@ -60,9 +62,9 @@ class DeployWebhookController extends Controller
             $basePath = base_path();
             $commands = [
                 "cd {$basePath}",
-                "git pull origin main 2>&1",
-                "php artisan migrate --force 2>&1",
-                "php artisan optimize 2>&1",
+                'git pull origin main 2>&1',
+                'php artisan migrate --force 2>&1',
+                'php artisan optimize 2>&1',
             ];
 
             $fullCommand = implode(' && ', $commands);
@@ -74,10 +76,10 @@ class DeployWebhookController extends Controller
                 exec($fullCommand, $lines);
                 $output = implode("\n", $lines);
             } else {
-                $output = "Note: shell_exec is disabled in php.ini. Please enable it in Hestia CP.";
+                $output = 'Note: shell_exec is disabled in php.ini. Please enable it in Hestia CP.';
             }
 
-            Log::info("Auto-deploy executed successfully via GitHub webhook:\n" . $output);
+            Log::info("Auto-deploy executed successfully via GitHub webhook:\n".$output);
 
             return response()->json([
                 'status' => 'success',
@@ -86,7 +88,8 @@ class DeployWebhookController extends Controller
                 'output' => $output,
             ]);
         } catch (\Throwable $e) {
-            Log::error("Auto-deploy exception: " . $e->getMessage());
+            Log::error('Auto-deploy exception: '.$e->getMessage());
+
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),

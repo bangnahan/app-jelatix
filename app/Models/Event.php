@@ -98,6 +98,7 @@ class Event extends Model
     public function isRegistrationOpen(): bool
     {
         $now = now();
+
         return $this->status === 'published' &&
             $now->between($this->registration_open_date, $this->registration_close_date);
     }

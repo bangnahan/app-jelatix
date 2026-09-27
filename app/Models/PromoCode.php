@@ -27,7 +27,7 @@ class PromoCode extends Model
 
     public function isValidForAmount(float $amount): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 

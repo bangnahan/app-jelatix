@@ -9,8 +9,11 @@ use Illuminate\Support\Facades\Log;
 class MailketingService
 {
     protected string $apiToken;
+
     protected string $apiUrl;
+
     protected string $fromEmail;
+
     protected string $fromName;
 
     public function __construct()
@@ -36,6 +39,7 @@ class MailketingService
         // Jika token belum diset di .env, log konten dan return true (agar tidak crash saat dev lokal)
         if (empty($this->apiToken)) {
             Log::info("Mailketing [MOCK]: Sending to {$recipientEmail} - {$subject}");
+
             return true;
         }
 
@@ -61,14 +65,17 @@ class MailketingService
             $response = Http::asForm()->timeout(15)->post("{$this->apiUrl}/send", $payload);
 
             if ($response->successful()) {
-                Log::info("Mailketing sent successfully to {$recipientEmail}: " . $response->body());
+                Log::info("Mailketing sent successfully to {$recipientEmail}: ".$response->body());
+
                 return true;
             }
 
-            Log::error("Mailketing API failed to {$recipientEmail}: " . $response->body());
+            Log::error("Mailketing API failed to {$recipientEmail}: ".$response->body());
+
             return false;
         } catch (Exception $e) {
-            Log::error("Mailketing exception for {$recipientEmail}: " . $e->getMessage());
+            Log::error("Mailketing exception for {$recipientEmail}: ".$e->getMessage());
+
             return false;
         }
     }

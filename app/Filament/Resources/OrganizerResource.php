@@ -4,11 +4,15 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrganizerResource\Pages;
 use App\Models\Organizer;
+use App\Models\User;
+use App\Services\MailketingService;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class OrganizerResource extends Resource
@@ -164,7 +168,7 @@ class OrganizerResource extends Resource
                 Tables\Columns\ImageColumn::make('logo_path')
                     ->label('Logo')
                     ->circular()
-                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&background=0284c7&color=fff'),
+                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name='.urlencode($record->name).'&background=0284c7&color=fff'),
 
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nama Organizer')
@@ -235,6 +239,7 @@ class OrganizerResource extends Resource
                                 if ($users->isEmpty()) {
                                     return 'Belum ada akun pengguna untuk organizer ini.';
                                 }
+
                                 return $users->map(fn ($u) => "• {$u->name} ({$u->email}) - Role: {$u->role}")->join("\n");
                             }),
 
@@ -265,8 +270,8 @@ class OrganizerResource extends Resource
                             ->default(true)
                             ->helperText('Otomatis kirimkan email resmi berisi password baru ke email PIC di atas.'),
                     ])
-                    ->action(function (Organizer $record, array $data, \App\Services\MailketingService $mailketing) {
-                        $user = \App\Models\User::where('email', $data['user_email'])->first();
+                    ->action(function (Organizer $record, array $data, MailketingService $mailketing) {
+                        $user = User::where('email', $data['user_email'])->first();
 
                         if ($user) {
                             $user->update([
@@ -277,7 +282,7 @@ class OrganizerResource extends Resource
                                 'is_active' => true,
                             ]);
                         } else {
-                            $user = \App\Models\User::create([
+                            $user = User::create([
                                 'organizer_id' => $record->id,
                                 'name' => $data['user_name'],
                                 'email' => $data['user_email'],
@@ -287,8 +292,8 @@ class OrganizerResource extends Resource
                             ]);
                         }
 
-                        if (!empty($data['send_email_notification'])) {
-                            $loginUrl = rtrim(config('app.url', 'https://app.jelatix.com'), '/') . '/organizer';
+                        if (! empty($data['send_email_notification'])) {
+                            $loginUrl = rtrim(config('app.url', 'https://app.jelatix.com'), '/').'/organizer';
                             if (str_contains($loginUrl, 'localhost') || str_contains($loginUrl, '127.0.0.1')) {
                                 $loginUrl = 'https://app.jelatix.com/organizer';
                             }
@@ -309,11 +314,11 @@ class OrganizerResource extends Resource
                                     htmlContent: $html
                                 );
                             } catch (\Exception $e) {
-                                \Illuminate\Support\Facades\Log::error("Gagal kirim email reset password EO: " . $e->getMessage());
+                                Log::error('Gagal kirim email reset password EO: '.$e->getMessage());
                             }
                         }
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Akun Login Berhasil Disimpan!')
                             ->body("Akun {$user->email} kini dapat login ke portal /organizer dengan password baru.")
                             ->success()

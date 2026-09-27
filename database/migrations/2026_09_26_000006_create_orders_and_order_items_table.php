@@ -22,14 +22,14 @@ return new class extends Migration
             $table->decimal('payment_gateway_fee', 14, 2)->default(0);
             $table->decimal('grand_total', 14, 2)->default(0);
             $table->string('status')->default('pending'); // pending, paid, expired, failed, refunded
-            
+
             // Tripay details
             $table->string('tripay_reference')->nullable()->index();
             $table->string('tripay_payment_method')->nullable(); // QRIS, BCAVA, BRIVA, dll
             $table->string('tripay_pay_code')->nullable(); // Virtual Account number / kode bayar
             $table->text('tripay_qr_url')->nullable(); // QRIS image url
             $table->text('tripay_checkout_url')->nullable();
-            
+
             $table->dateTime('paid_at')->nullable();
             $table->dateTime('expired_at')->nullable(); // Batas waktu bayar (15-30 menit)
             $table->timestamps();

@@ -62,6 +62,7 @@ class OrganizerPayoutResource extends Resource
                                         if ($organizerId) {
                                             return Event::where('organizer_id', $organizerId)->pluck('title', 'id');
                                         }
+
                                         return Event::pluck('title', 'id');
                                     })
                                     ->searchable()
@@ -282,7 +283,7 @@ class OrganizerPayoutResource extends Resource
 
                         Notification::make()
                             ->title('Payout Berhasil Ditandai Lunas!')
-                            ->body("Dana sebesar Rp " . number_format($record->net_payout_amount, 0, ',', '.') . " telah ditandai ditransfer ke {$record->organizer?->name}.")
+                            ->body('Dana sebesar Rp '.number_format($record->net_payout_amount, 0, ',', '.')." telah ditandai ditransfer ke {$record->organizer?->name}.")
                             ->success()
                             ->send();
                     }),

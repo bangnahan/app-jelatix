@@ -10,9 +10,13 @@ use Illuminate\Support\Facades\Log;
 class TripayService
 {
     protected string $apiKey;
+
     protected string $privateKey;
+
     protected string $merchantCode;
+
     protected string $baseUrl;
+
     protected int $expiryMinutes;
 
     public function __construct()
@@ -34,18 +38,18 @@ class TripayService
         return cache()->remember('tripay_active_payment_channels', 600, function () {
             try {
                 $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Authorization' => 'Bearer '.$this->apiKey,
                 ])->timeout(4)->get("{$this->baseUrl}/merchant/payment-channel");
 
                 if ($response->successful()) {
                     $data = $response->json('data') ?? [];
-                    if (!empty($data) && is_array($data)) {
+                    if (! empty($data) && is_array($data)) {
                         // Filter hanya channel yang berstatus aktif
                         $activeChannels = array_filter($data, function ($ch) {
                             return ($ch['active'] ?? true) === true;
                         });
 
-                        if (!empty($activeChannels)) {
+                        if (! empty($activeChannels)) {
                             // Normalisasi nama grup agar konsisten
                             return array_values(array_map(function ($ch) {
                                 $group = $ch['group'] ?? 'Lainnya';
@@ -58,15 +62,16 @@ class TripayService
                                 } elseif (in_array(strtolower($group), ['paylater', 'cicilan'])) {
                                     $ch['group'] = 'Paylater';
                                 }
+
                                 return $ch;
                             }, $activeChannels));
                         }
                     }
                 }
 
-                Log::warning('Tripay getPaymentChannels returned non-success, fallback to default channels: ' . $response->body());
+                Log::warning('Tripay getPaymentChannels returned non-success, fallback to default channels: '.$response->body());
             } catch (Exception $e) {
-                Log::warning('Tripay getPaymentChannels exception, fallback to default channels: ' . $e->getMessage());
+                Log::warning('Tripay getPaymentChannels exception, fallback to default channels: '.$e->getMessage());
             }
 
             return $this->getDefaultPaymentChannels();
@@ -386,12 +391,12 @@ class TripayService
         $expiredTime = now()->addMinutes($this->expiryMinutes)->timestamp;
 
         // Generate Signature: HMAC-SHA256(merchant_code + merchant_ref + amount, private_key)
-        $signature = hash_hmac('sha256', $this->merchantCode . $merchantRef . $amount, $this->privateKey);
+        $signature = hash_hmac('sha256', $this->merchantCode.$merchantRef.$amount, $this->privateKey);
 
         $orderItems = [];
         foreach ($order->items as $item) {
             $orderItems[] = [
-                'sku' => 'CAT-' . $item->event_category_id,
+                'sku' => 'CAT-'.$item->event_category_id,
                 'name' => $item->category?->name ?? 'Tiket Lari',
                 'price' => (int) round($item->unit_price),
                 'quantity' => $item->quantity,
@@ -414,11 +419,11 @@ class TripayService
             if (str_contains($appUrl, 'localhost') || str_contains($appUrl, '127.0.0.1')) {
                 $callbackUrl = 'https://app.jelatix.com/api/webhooks/tripay';
             } else {
-                $callbackUrl = rtrim($appUrl, '/') . '/api/webhooks/tripay';
+                $callbackUrl = rtrim($appUrl, '/').'/api/webhooks/tripay';
             }
         }
 
-        $returnUrl = rtrim(config('app.url', 'https://app.jelatix.com'), '/') . "/orders/{$order->order_code}";
+        $returnUrl = rtrim(config('app.url', 'https://app.jelatix.com'), '/')."/orders/{$order->order_code}";
         if (str_contains($returnUrl, 'localhost') || str_contains($returnUrl, '127.0.0.1')) {
             $returnUrl = "https://app.jelatix.com/orders/{$order->order_code}";
         }
@@ -439,7 +444,7 @@ class TripayService
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer '.$this->apiKey,
             ])->timeout(10)->post("{$this->baseUrl}/transaction/create", $payload);
 
             if ($response->successful() && $response->json('success') === true) {
@@ -465,11 +470,11 @@ class TripayService
             ]);
 
             // Jika ada API Key yang dikonfigurasi, laporkan error sebenarnya dari Tripay agar tidak diam-diam tertutup data mock
-            if (!empty($this->apiKey) && !str_starts_with($this->apiKey, 'MOCK')) {
+            if (! empty($this->apiKey) && ! str_starts_with($this->apiKey, 'MOCK')) {
                 throw new Exception("Tripay Gateway: {$errorMessage}. Periksa Kredensial Tripay (API Key, Private Key, atau Merchant Code) di .env.");
             }
         } catch (Exception $e) {
-            Log::error("Tripay exception: " . $e->getMessage());
+            Log::error('Tripay exception: '.$e->getMessage());
             if (str_starts_with($e->getMessage(), 'Tripay Gateway:')) {
                 throw $e;
             }
@@ -488,12 +493,12 @@ class TripayService
         if ($isQris) {
             $mockQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=00020101021226590014ID.LINKAJA.WWW011893600911002227142702150000000000000000303UMI51440014ID.DANA.WWW0118936009153022271427021500000000000000005204549953033605802ID5914JELATIX%20RUN6007JAKARTA61051219062070703A016304';
         } elseif ($isRetail) {
-            $mockPayCode = 'TRP-' . rand(10000000, 99999999);
+            $mockPayCode = 'TRP-'.rand(10000000, 99999999);
         } elseif ($isEwallet || $isPaylater) {
-            $mockPayCode = '0812' . rand(10000000, 99999999);
+            $mockPayCode = '0812'.rand(10000000, 99999999);
         } else {
             // Virtual Account Prefix
-            $bankPrefix = match($paymentMethod) {
+            $bankPrefix = match ($paymentMethod) {
                 'BCAVA' => '88390',
                 'BRIVA' => '12800',
                 'BNIVA' => '98800',
@@ -511,10 +516,10 @@ class TripayService
                 'BJBVA' => '83400',
                 default => '88888',
             };
-            $mockPayCode = $bankPrefix . rand(10000000, 99999999);
+            $mockPayCode = $bankPrefix.rand(10000000, 99999999);
         }
 
-        $mockRef = 'TP-SB-' . rand(100000, 999999);
+        $mockRef = 'TP-SB-'.rand(100000, 999999);
 
         $order->update([
             'tripay_reference' => $mockRef,

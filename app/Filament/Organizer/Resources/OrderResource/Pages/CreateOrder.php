@@ -3,7 +3,6 @@
 namespace App\Filament\Organizer\Resources\OrderResource\Pages;
 
 use App\Filament\Organizer\Resources\OrderResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateOrder extends CreateRecord

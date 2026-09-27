@@ -16,16 +16,15 @@ class SendTicketEmailJob
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public Order $order)
-    {
-    }
+    public function __construct(public Order $order) {}
 
     public function handle(MailketingService $mailketing, TicketPdfService $ticketPdfService): void
     {
         $order = $this->order->fresh(['event', 'participants.category', 'participants.jerseySize']);
 
-        if (!$order || !$order->isPaid()) {
+        if (! $order || ! $order->isPaid()) {
             Log::warning("SendTicketEmailJob skipped: Order #{$this->order->id} is not paid (status: {$order?->status})");
+
             return;
         }
 
@@ -37,7 +36,7 @@ class SendTicketEmailJob
         $baseUrl = rtrim($baseUrl, '/');
 
         $storageDir = storage_path('app/public/tickets');
-        if (!file_exists($storageDir)) {
+        if (! file_exists($storageDir)) {
             @mkdir($storageDir, 0755, true);
         }
 
@@ -62,7 +61,7 @@ class SendTicketEmailJob
                     'directPdfUrl' => $directPdfUrl,
                 ])->render();
 
-                $targetEmail = !empty($participant->email) ? $participant->email : $order->customer_email;
+                $targetEmail = ! empty($participant->email) ? $participant->email : $order->customer_email;
 
                 $sent = $mailketing->sendEmail(
                     recipientEmail: $targetEmail,
@@ -80,7 +79,7 @@ class SendTicketEmailJob
                     Log::warning("E-Ticket email sending returned false for participant #{$participant->id} ({$targetEmail})");
                 }
             } catch (Exception $e) {
-                Log::error("Failed to send ticket email to participant #{$participant->id}: " . $e->getMessage());
+                Log::error("Failed to send ticket email to participant #{$participant->id}: ".$e->getMessage());
             }
         }
     }

@@ -25,15 +25,25 @@ class CrewScannerController extends Controller
 
         $search = trim($request->input('token'));
 
-        $participant = Participant::with(['category.event', 'jerseySize', 'order', 'rpcClaimedBy'])
-            ->where('qr_token', $search)
-            ->orWhere('bib_number', $search)
-            ->first();
+        $user = auth()->user();
+        $query = Participant::with(['category.event', 'jerseySize', 'order', 'rpcClaimedBy'])
+            ->where(function ($q) use ($search) {
+                $q->where('qr_token', $search)
+                    ->orWhere('bib_number', $search);
+            });
 
-        if (!$participant) {
+        if ($user && ! $user->isSuperAdmin() && $user->organizer_id) {
+            $query->whereHas('category.event', function ($q) use ($user) {
+                $q->where('organizer_id', $user->organizer_id);
+            });
+        }
+
+        $participant = $query->first();
+
+        if (! $participant) {
             return response()->json([
                 'success' => false,
-                'message' => 'E-Ticket tidak ditemukan atau tidak valid!',
+                'message' => 'E-Ticket / BIB tidak ditemukan atau tidak terdaftar pada event Anda!',
             ], 404);
         }
 
@@ -41,7 +51,7 @@ class CrewScannerController extends Controller
         if ($participant->order && $participant->order->status !== 'paid') {
             return response()->json([
                 'success' => false,
-                'message' => "Order {$participant->order->order_code} berstatus " . strtoupper($participant->order->status) . " (Belum Lunas).",
+                'message' => "Order {$participant->order->order_code} berstatus ".strtoupper($participant->order->status).' (Belum Lunas).',
                 'participant' => $participant,
             ], 422);
         }
@@ -55,12 +65,12 @@ class CrewScannerController extends Controller
                 'bib_number' => $participant->bib_number ?: 'BELUM DI-ASSIGN',
                 'category_name' => $participant->category?->name,
                 'distance_km' => $participant->category?->distance_km,
-                'jersey_size' => $participant->jerseySize ? $participant->jerseySize->size_name . ' (' . ucfirst($participant->jerseySize->gender_type) . ')' : 'Tidak Ada Data',
+                'jersey_size' => $participant->jerseySize ? $participant->jerseySize->size_name.' ('.ucfirst($participant->jerseySize->gender_type).')' : 'Tidak Ada Data',
                 'blood_type' => $participant->blood_type,
                 'id_number' => $participant->id_number,
                 'is_vip' => $participant->is_vip,
                 'is_rpc_claimed' => $participant->is_rpc_claimed,
-                'rpc_claimed_at' => $participant->rpc_claimed_at?->format('d M Y, H:i') . ' WIB',
+                'rpc_claimed_at' => $participant->rpc_claimed_at?->format('d M Y, H:i').' WIB',
                 'rpc_claimed_by' => $participant->rpcClaimedBy?->name,
                 'is_proxy_claimed' => $participant->is_proxy_claimed,
                 'proxy_collector_name' => $participant->proxy_collector_name,
@@ -81,9 +91,24 @@ class CrewScannerController extends Controller
         ]);
 
         return DB::transaction(function () use ($request) {
-            $participant = Participant::where('id', $request->input('participant_id'))
-                ->lockForUpdate()
-                ->first();
+            $user = auth()->user();
+            $query = Participant::where('id', $request->input('participant_id'))
+                ->lockForUpdate();
+
+            if ($user && ! $user->isSuperAdmin() && $user->organizer_id) {
+                $query->whereHas('category.event', function ($q) use ($user) {
+                    $q->where('organizer_id', $user->organizer_id);
+                });
+            }
+
+            $participant = $query->first();
+
+            if (! $participant) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Peserta tidak ditemukan atau Anda tidak memiliki akses ke event ini!',
+                ], 403);
+            }
 
             if ($participant->is_rpc_claimed) {
                 return response()->json([
@@ -106,7 +131,7 @@ class CrewScannerController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Race Pack berhasil diserahkan kepada {$participant->full_name}.",
-                'claimed_at' => now()->format('d M Y, H:i') . ' WIB',
+                'claimed_at' => now()->format('d M Y, H:i').' WIB',
             ]);
         });
     }
