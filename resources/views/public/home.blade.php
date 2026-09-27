@@ -102,19 +102,26 @@
                 @forelse($events as $event)
                     <div class="bg-slate-900/80 border border-white/10 rounded-2xl overflow-hidden hover:border-sky-500/50 transition duration-300 flex flex-col justify-between shadow-2xl">
                         <div>
-                            <!-- Banner Placeholder with gradient -->
-                            <div class="h-44 sm:h-48 bg-gradient-to-tr from-sky-900 via-indigo-950 to-slate-900 relative p-5 sm:p-6 flex flex-col justify-between">
-                                <div class="flex justify-between items-start">
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            <!-- Banner with Cover Image -->
+                            <div 
+                                class="h-44 sm:h-48 relative p-5 sm:p-6 flex flex-col justify-between bg-cover bg-center overflow-hidden"
+                                @if($event->banner_path)
+                                    style="background-image: linear-gradient(to top, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.45) 50%, rgba(15, 23, 42, 0.6) 100%), url('{{ asset('storage/' . $event->banner_path) }}');"
+                                @else
+                                    style="background: linear-gradient(135deg, #0c4a6e 0%, #1e1b4b 50%, #0f172a 100%);"
+                                @endif
+                            >
+                                <div class="flex justify-between items-start relative z-10">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
                                         Registrasi Dibuka
                                     </span>
-                                    <span class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-mono bg-black/40 text-slate-300 backdrop-blur-md">
+                                    <span class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-mono bg-black/50 text-slate-300 backdrop-blur-md border border-white/10">
                                         {{ $event->event_start_date->format('d M Y') }}
                                     </span>
                                 </div>
-                                <div>
-                                    <span class="text-[11px] sm:text-xs text-sky-400 font-semibold block uppercase tracking-wider">{{ $event->organizer?->name }}</span>
-                                    <h3 class="text-lg sm:text-xl font-bold text-white line-clamp-1">{{ $event->title }}</h3>
+                                <div class="relative z-10">
+                                    <span class="text-[11px] sm:text-xs text-sky-400 font-semibold block uppercase tracking-wider drop-shadow-sm">{{ $event->organizer?->name }}</span>
+                                    <h3 class="text-lg sm:text-xl font-bold text-white line-clamp-1 drop-shadow-md">{{ $event->title }}</h3>
                                 </div>
                             </div>
 

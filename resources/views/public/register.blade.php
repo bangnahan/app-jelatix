@@ -53,7 +53,12 @@
     <!-- Main Container -->
     <main class="max-w-4xl mx-auto px-3.5 sm:px-6 py-5 sm:py-10 pb-36 sm:pb-28 flex-1 w-full">
         <!-- Event Header Card -->
-        <div class="bg-slate-900/80 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl mb-6 sm:mb-8 relative overflow-hidden">
+        <div 
+            class="bg-slate-900/90 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl mb-6 sm:mb-8 relative overflow-hidden bg-cover bg-center"
+            @if($event->banner_path)
+                style="background-image: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.88) 50%, rgba(15, 23, 42, 0.75) 100%), url('{{ asset('storage/' . $event->banner_path) }}');"
+            @endif
+        >
             <div class="flex items-center gap-2 mb-2">
                 <span class="px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     Pendaftaran Dibuka

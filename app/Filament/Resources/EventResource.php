@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Organizer\Resources;
+namespace App\Filament\Resources;
 
-use App\Filament\Organizer\Resources\EventResource\Pages;
+use App\Filament\Resources\EventResource\Pages;
 use App\Models\Event;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,9 +16,14 @@ class EventResource extends Resource
     protected static ?string $model = Event::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
+
     protected static ?string $navigationLabel = 'Event Lari';
-    protected static ?string $navigationGroup = 'Manajemen Event Lari';
-    protected static ?int $navigationSort = 1;
+
+    protected static ?string $modelLabel = 'Event Lari';
+
+    protected static ?string $pluralModelLabel = 'Daftar Event Lari';
+
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
@@ -33,13 +38,7 @@ class EventResource extends Resource
                                     ->relationship('organizer', 'name')
                                     ->searchable()
                                     ->preload()
-                                    ->default(fn () => auth()->user()?->organizer_id ?: 1)
-                                    ->visible(fn () => auth()->user()?->isSuperAdmin())
                                     ->required(),
-
-                                Forms\Components\Hidden::make('organizer_id')
-                                    ->default(fn () => auth()->user()?->organizer_id ?: 1)
-                                    ->hidden(fn () => auth()->user()?->isSuperAdmin()),
 
                                 Forms\Components\TextInput::make('title')
                                     ->label('Nama Event Lari')
@@ -60,7 +59,7 @@ class EventResource extends Resource
                                     ->imageCropAspectRatio('16:9')
                                     ->directory('events/banners')
                                     ->maxSize(3072)
-                                    ->helperText('📐 Ukuran Rekomendasi: 1200 x 675 pixel (Rasio aspek 16:9), atau minimal 800 x 450 pixel. Format file: JPG, PNG, atau WebP (Maks. 3 MB). Gambar ini akan menjadi banner utama pada kartu event di beranda publik serta header halaman pendaftaran.')
+                                    ->helperText('📐 Ukuran Rekomendasi: 1200 x 675 pixel (Rasio aspek 16:9), atau minimal 800 x 450 pixel. Format file: JPG, PNG, atau WebP (Maksimal 3 MB). Gambar ini akan menjadi banner utama pada kartu event di beranda publik serta header halaman pendaftaran.')
                                     ->columnSpanFull(),
 
                                 Forms\Components\Textarea::make('short_description')
@@ -162,10 +161,9 @@ class EventResource extends Resource
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('organizer.name')
-                    ->label('Penyelenggara')
+                    ->label('Penyelenggara (EO)')
                     ->searchable()
-                    ->sortable()
-                    ->visible(fn () => auth()->user()?->isSuperAdmin()),
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('race_location_name')
                     ->label('Lokasi')
@@ -204,9 +202,13 @@ class EventResource extends Resource
                         'registration_closed' => 'Registration Closed',
                         'completed' => 'Completed',
                     ]),
+                Tables\Filters\SelectFilter::make('organizer_id')
+                    ->label('Penyelenggara')
+                    ->relationship('organizer', 'name'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
