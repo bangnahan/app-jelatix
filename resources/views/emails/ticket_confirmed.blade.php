@@ -47,8 +47,14 @@
                 </tr>
             </table>
 
+            @php
+                $targetUrl = !empty($downloadUrl) ? $downloadUrl : route('public.ticket.download', $participant->qr_token);
+                if (str_contains($targetUrl, 'localhost') || str_contains($targetUrl, '127.0.0.1')) {
+                    $targetUrl = str_replace(['http://localhost:8000', 'http://127.0.0.1:8000', 'http://localhost'], 'https://app.jelatix.com', $targetUrl);
+                }
+            @endphp
             <div style="text-align: center; margin: 28px 0;">
-                <a href="{{ route('public.ticket.download', $participant->qr_token) }}" style="background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);">
+                <a href="{{ $targetUrl }}" target="_blank" style="background-color: #2563eb; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);">
                     📥 Unduh E-Ticket Resmi (PDF)
                 </a>
             </div>
