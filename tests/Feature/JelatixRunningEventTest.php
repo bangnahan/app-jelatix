@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Filament\Organizer\Pages\RpcScanner;
+use App\Filament\Organizer\Resources\EventResource\Pages\CreateEvent;
+use App\Filament\Organizer\Widgets\JerseyProductionRecapWidget;
 use App\Jobs\SendPaymentPendingEmailJob;
 use App\Models\Event;
 use App\Models\EventCategory;
@@ -17,6 +19,7 @@ use App\Services\MailketingService;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -896,5 +899,148 @@ class JelatixRunningEventTest extends TestCase
 
         $this->assertTrue($participant->fresh()->is_rpc_claimed);
         $this->assertEquals($crewUser->id, $participant->fresh()->rpc_claimed_by_user_id);
+    }
+
+    public function test_event_creation_with_categories_saves_properly(): void
+    {
+        $eoUser = User::create([
+            'organizer_id' => $this->organizer->id,
+            'name' => 'EO Director Creator',
+            'email' => 'creator@testeo.com',
+            'password' => bcrypt('password'),
+            'role' => 'organizer_owner',
+            'is_active' => true,
+        ]);
+
+        $uuidCat = (string) Str::uuid();
+
+        Livewire::actingAs($eoUser)
+            ->test(CreateEvent::class)
+            ->set('data.title', 'Jakarta Ultra Trail 2026')
+            ->set('data.slug', 'jakarta-ultra-trail-2026')
+            ->set('data.event_start_date', '2026-12-15 05:00:00')
+            ->set('data.registration_open_date', '2026-10-01 00:00:00')
+            ->set('data.registration_close_date', '2026-12-01 23:59:59')
+            ->set('data.race_location_name', 'Taman Nasional Gunung Halimun')
+            ->set('data.status', 'published')
+            ->set('data.categories', [
+                $uuidCat => [
+                    'name' => '21K Half Marathon Trail',
+                    'distance_km' => '21.1',
+                    'normal_price' => '350000',
+                    'quota' => '400',
+                    'bib_prefix' => '21K',
+                    'bib_start_number' => '2001',
+                    'is_active' => true,
+                ],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $savedEvent = Event::where('slug', 'jakarta-ultra-trail-2026')->first();
+        $this->assertNotNull($savedEvent);
+        $this->assertEquals(1, $savedEvent->categories()->count());
+
+        $category = $savedEvent->categories()->first();
+        $this->assertEquals('21K Half Marathon Trail', $category->name);
+        $this->assertEquals(21.1, (float) $category->distance_km);
+        $this->assertEquals(350000, (float) $category->normal_price);
+        $this->assertEquals('21K', $category->bib_prefix);
+
+        // Standard jersey sizes should also have been automatically generated with unlimited stock
+        $this->assertEquals(9, $savedEvent->jerseySizes()->count());
+        $this->assertTrue($savedEvent->jerseySizes()->first()->isUnlimited());
+        $this->assertTrue($savedEvent->jerseySizes()->first()->is_unlimited);
+    }
+
+    public function test_jersey_sizes_are_unlimited_by_default_and_can_be_restricted(): void
+    {
+        // 1. Ukuran default unlimited
+        $unlimitedJersey = JerseySize::create([
+            'event_id' => $this->event->id,
+            'size_name' => 'L',
+            'gender_type' => 'unisex',
+            'is_unlimited' => true,
+            'stock' => null,
+            'allocated_stock' => 0,
+        ]);
+        $this->assertTrue($unlimitedJersey->isUnlimited());
+        $this->assertTrue($unlimitedJersey->hasStock(1000));
+        $this->assertNull($unlimitedJersey->available_stock);
+
+        // 2. Ukuran dengan pembatasan kuota (restricted)
+        $restrictedJersey = JerseySize::create([
+            'event_id' => $this->event->id,
+            'size_name' => '5XL',
+            'gender_type' => 'unisex',
+            'is_unlimited' => false,
+            'stock' => 2,
+            'allocated_stock' => 0,
+        ]);
+        $this->assertFalse($restrictedJersey->isUnlimited());
+        $this->assertEquals(2, $restrictedJersey->available_stock);
+        $this->assertTrue($restrictedJersey->hasStock(2));
+        $this->assertFalse($restrictedJersey->hasStock(3));
+    }
+
+    public function test_jersey_production_recap_widget_renders_live_data_and_can_export_csv(): void
+    {
+        $eoUser = User::create([
+            'organizer_id' => $this->organizer->id,
+            'name' => 'EO Director Recap',
+            'email' => 'recap.eo@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'organizer_owner',
+            'is_active' => true,
+        ]);
+
+        $jerseyM = JerseySize::create([
+            'event_id' => $this->event->id,
+            'size_name' => 'M',
+            'gender_type' => 'unisex',
+            'is_unlimited' => true,
+        ]);
+
+        $orderPaid = Order::create([
+            'event_id' => $this->event->id,
+            'order_code' => 'JLTX-RECAP-PAID-1',
+            'customer_name' => 'Pelari M Paid',
+            'customer_email' => 'm.paid@test.com',
+            'customer_phone' => '081233333333',
+            'grand_total' => 250000,
+            'status' => 'paid',
+        ]);
+
+        Participant::create([
+            'order_id' => $orderPaid->id,
+            'event_category_id' => $this->category->id,
+            'jersey_size_id' => $jerseyM->id,
+            'full_name' => 'Pelari M Paid',
+            'id_number' => '3171012345678999',
+            'gender' => 'male',
+            'birth_date' => '1993-01-01',
+            'phone' => '081233333333',
+            'email' => 'm.paid@test.com',
+            'emergency_contact_name' => 'Ayah',
+            'emergency_contact_phone' => '081233330000',
+            'emergency_contact_relation' => 'Orang Tua',
+            'bib_number' => '10K8888',
+        ]);
+
+        // Test Livewire Widget Rendering
+        $test = Livewire::actingAs($eoUser)
+            ->test(JerseyProductionRecapWidget::class)
+            ->assertSuccessful()
+            ->set('selectedEventId', $this->event->id);
+
+        $recap = $test->get('recapData');
+        $this->assertGreaterThanOrEqual(1, $recap['grand_total_paid']);
+
+        // Test CSV Export
+        $widget = new JerseyProductionRecapWidget;
+        $widget->selectedEventId = $this->event->id;
+        $export = $widget->exportCsv();
+        $this->assertEquals(200, $export->getStatusCode());
+        $this->assertStringContainsString('rekap-produksi-jersey-', (string) $export->headers->get('content-disposition'));
     }
 }

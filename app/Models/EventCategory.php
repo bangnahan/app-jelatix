@@ -22,6 +22,31 @@ class EventCategory extends Model
         'is_active' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (EventCategory $category) {
+            if (empty($category->bib_prefix)) {
+                $category->bib_prefix = strtoupper(str_replace(' ', '', substr($category->name ?: 'RUN', 0, 4))) ?: 'RUN';
+            }
+
+            if (empty($category->bib_start_number)) {
+                $category->bib_start_number = 1001;
+            }
+
+            if ($category->quota === null) {
+                $category->quota = 500;
+            }
+
+            if ($category->slots_taken === null) {
+                $category->slots_taken = 0;
+            }
+
+            if ($category->is_active === null) {
+                $category->is_active = true;
+            }
+        });
+    }
+
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);

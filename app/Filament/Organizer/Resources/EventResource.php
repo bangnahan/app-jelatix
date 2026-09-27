@@ -150,6 +150,9 @@ class EventResource extends Resource
                                 Forms\Components\Repeater::make('categories')
                                     ->relationship('categories')
                                     ->label('Kategori Lomba (5K, 10K, 21K, 42K, dll)')
+                                    ->defaultItems(1)
+                                    ->minItems(1)
+                                    ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
                                     ->schema([
                                         Forms\Components\TextInput::make('name')
                                             ->label('Nama Kategori')
@@ -173,12 +176,17 @@ class EventResource extends Resource
                                         Forms\Components\TextInput::make('bib_prefix')
                                             ->label('Prefix BIB')
                                             ->placeholder('Contoh: 10K')
+                                            ->default('5K')
                                             ->maxLength(10),
+                                        Forms\Components\TextInput::make('bib_start_number')
+                                            ->label('Nomor Awal BIB')
+                                            ->numeric()
+                                            ->default(1001),
                                         Forms\Components\Toggle::make('is_active')
                                             ->label('Buka')
                                             ->default(true),
                                     ])
-                                    ->columns(6)
+                                    ->columns(7)
                                     ->columnSpanFull()
                                     ->addActionLabel('+ Tambah Kategori Lari'),
                             ]),
@@ -188,6 +196,8 @@ class EventResource extends Resource
                                 Forms\Components\Repeater::make('jerseySizes')
                                     ->relationship('jerseySizes')
                                     ->label('Pilihan Ukuran Jersey Lari (XS sampai 5XL)')
+                                    ->defaultItems(0)
+                                    ->itemLabel(fn (array $state): ?string => isset($state['size_name']) ? ($state['size_name'].' ('.($state['gender_type'] ?? 'unisex').') - '.((! isset($state['is_unlimited']) || $state['is_unlimited']) ? 'Unlimited' : ('Batas: '.($state['stock'] ?? 0).' pcs'))) : null)
                                     ->schema([
                                         Forms\Components\Select::make('size_name')
                                             ->label('Ukuran')
@@ -222,16 +232,24 @@ class EventResource extends Resource
                                             ->label('Panjang Baju (cm)')
                                             ->numeric(),
 
+                                        Forms\Components\Toggle::make('is_unlimited')
+                                            ->label('Stok Unlimited')
+                                            ->helperText('Bebas tanpa batasan kuota')
+                                            ->default(true)
+                                            ->live(),
+
                                         Forms\Components\TextInput::make('stock')
-                                            ->label('Total Stok')
+                                            ->label('Batas Maksimal Stok')
                                             ->numeric()
-                                            ->default(100)
-                                            ->required(),
+                                            ->placeholder('Contoh: 100')
+                                            ->visible(fn ($get) => ! $get('is_unlimited'))
+                                            ->required(fn ($get) => ! $get('is_unlimited'))
+                                            ->helperText('Isi jika ukuran ini dibatasi stoknya'),
                                     ])
-                                    ->columns(5)
+                                    ->columns(6)
                                     ->columnSpanFull()
                                     ->addActionLabel('+ Tambah Pilihan Ukuran')
-                                    ->helperText('Pilihan ukuran jersey lomba dari XS hingga 5XL dengan panduan ukuran cm dan alokasi stok.'),
+                                    ->helperText('Secara default seluruh ukuran jersey berstatus Unlimited (bebas tanpa batasan stok). Aktifkan pembatasan stok hanya jika kuota jersey untuk ukuran tertentu terbatas.'),
                             ]),
                     ])->columnSpanFull(),
             ]);

@@ -628,9 +628,10 @@
 
             // Opsi Jersey
             let jerseyOptions = jerseySizesData.map(j => {
-                const sisa = Math.max(0, j.stock - j.allocated_stock);
-                const disabled = sisa <= 0 ? 'disabled' : '';
-                const stockBadge = sisa > 0 ? `(Tersedia: ${sisa} pcs)` : `[STOK HABIS]`;
+                const isUnlimited = j.is_unlimited === true || j.is_unlimited === 1 || j.stock === null;
+                const sisa = isUnlimited ? null : Math.max(0, j.stock - j.allocated_stock);
+                const disabled = (!isUnlimited && sisa <= 0) ? 'disabled' : '';
+                const stockBadge = isUnlimited ? '' : (sisa > 0 ? `(Tersedia: ${sisa} pcs)` : `[STOK HABIS]`);
                 return `<option value="${j.id}" ${disabled}>${j.size_name} - ${j.gender_type.toUpperCase()} ${stockBadge}</option>`;
             }).join('');
 

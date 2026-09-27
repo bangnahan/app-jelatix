@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Organizer\Widgets\EventStatsOverview;
+use App\Filament\Organizer\Widgets\JerseyProductionRecapWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -38,6 +39,7 @@ class OrganizerPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Organizer/Widgets'), for: 'App\\Filament\\Organizer\\Widgets')
             ->widgets([
                 EventStatsOverview::class,
+                JerseyProductionRecapWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

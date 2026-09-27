@@ -34,15 +34,15 @@ class Event extends Model
         static::created(function (Event $event) {
             if ($event->jerseySizes()->count() === 0) {
                 $standardSizes = [
-                    ['size_name' => 'XS', 'gender_type' => 'unisex', 'chest_width_cm' => 46, 'body_length_cm' => 66, 'stock' => 50],
-                    ['size_name' => 'S', 'gender_type' => 'unisex', 'chest_width_cm' => 48, 'body_length_cm' => 68, 'stock' => 100],
-                    ['size_name' => 'M', 'gender_type' => 'unisex', 'chest_width_cm' => 50, 'body_length_cm' => 70, 'stock' => 200],
-                    ['size_name' => 'L', 'gender_type' => 'unisex', 'chest_width_cm' => 52, 'body_length_cm' => 72, 'stock' => 200],
-                    ['size_name' => 'XL', 'gender_type' => 'unisex', 'chest_width_cm' => 54, 'body_length_cm' => 74, 'stock' => 150],
-                    ['size_name' => 'XXL', 'gender_type' => 'unisex', 'chest_width_cm' => 56, 'body_length_cm' => 76, 'stock' => 100],
-                    ['size_name' => '3XL', 'gender_type' => 'unisex', 'chest_width_cm' => 58, 'body_length_cm' => 78, 'stock' => 50],
-                    ['size_name' => '4XL', 'gender_type' => 'unisex', 'chest_width_cm' => 60, 'body_length_cm' => 80, 'stock' => 50],
-                    ['size_name' => '5XL', 'gender_type' => 'unisex', 'chest_width_cm' => 62, 'body_length_cm' => 82, 'stock' => 50],
+                    ['size_name' => 'XS', 'gender_type' => 'unisex', 'chest_width_cm' => 46, 'body_length_cm' => 66, 'is_unlimited' => true, 'stock' => null],
+                    ['size_name' => 'S', 'gender_type' => 'unisex', 'chest_width_cm' => 48, 'body_length_cm' => 68, 'is_unlimited' => true, 'stock' => null],
+                    ['size_name' => 'M', 'gender_type' => 'unisex', 'chest_width_cm' => 50, 'body_length_cm' => 70, 'is_unlimited' => true, 'stock' => null],
+                    ['size_name' => 'L', 'gender_type' => 'unisex', 'chest_width_cm' => 52, 'body_length_cm' => 72, 'is_unlimited' => true, 'stock' => null],
+                    ['size_name' => 'XL', 'gender_type' => 'unisex', 'chest_width_cm' => 54, 'body_length_cm' => 74, 'is_unlimited' => true, 'stock' => null],
+                    ['size_name' => 'XXL', 'gender_type' => 'unisex', 'chest_width_cm' => 56, 'body_length_cm' => 76, 'is_unlimited' => true, 'stock' => null],
+                    ['size_name' => '3XL', 'gender_type' => 'unisex', 'chest_width_cm' => 58, 'body_length_cm' => 78, 'is_unlimited' => true, 'stock' => null],
+                    ['size_name' => '4XL', 'gender_type' => 'unisex', 'chest_width_cm' => 60, 'body_length_cm' => 80, 'is_unlimited' => true, 'stock' => null],
+                    ['size_name' => '5XL', 'gender_type' => 'unisex', 'chest_width_cm' => 62, 'body_length_cm' => 82, 'is_unlimited' => true, 'stock' => null],
                 ];
 
                 foreach ($standardSizes as $size) {

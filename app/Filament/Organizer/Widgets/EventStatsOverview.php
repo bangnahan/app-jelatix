@@ -13,12 +13,26 @@ class EventStatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        $totalParticipants = Participant::count();
-        $totalPaidOrders = Order::where('status', 'paid')->count();
-        $totalRevenue = Order::where('status', 'paid')->sum('subtotal');
-        $rpcClaimed = Participant::where('is_rpc_claimed', true)->count();
+        $user = auth()->user();
+
+        $participantQuery = Participant::query();
+        $orderQuery = Order::query();
+
+        if ($user && ! $user->isSuperAdmin() && $user->organizer_id) {
+            $participantQuery->whereHas('category.event', function ($q) use ($user) {
+                $q->where('organizer_id', $user->organizer_id);
+            });
+            $orderQuery->whereHas('event', function ($q) use ($user) {
+                $q->where('organizer_id', $user->organizer_id);
+            });
+        }
+
+        $totalParticipants = (clone $participantQuery)->count();
+        $totalPaidOrders = (clone $orderQuery)->where('status', 'paid')->count();
+        $totalRevenue = (clone $orderQuery)->where('status', 'paid')->sum('subtotal');
+        $rpcClaimed = (clone $participantQuery)->where('is_rpc_claimed', true)->count();
         $rpcPercentage = $totalParticipants > 0 ? round(($rpcClaimed / $totalParticipants) * 100, 1) : 0;
-        $vipCount = Participant::where('is_vip', true)->count();
+        $vipCount = (clone $participantQuery)->where('is_vip', true)->count();
 
         return [
             Stat::make('Total Pelari Terdaftar', number_format($totalParticipants, 0, ',', '.'))

@@ -170,7 +170,7 @@ class PublicRegistrationController extends Controller
                         ->lockForUpdate()
                         ->firstOrFail();
 
-                    if (($jersey->allocated_stock + $qtyNeeded) > $jersey->stock) {
+                    if (! $jersey->isUnlimited() && ($jersey->allocated_stock + $qtyNeeded) > $jersey->stock) {
                         $available = max(0, $jersey->stock - $jersey->allocated_stock);
                         throw new Exception("Mohon maaf, sisa stok ukuran kaos {$jersey->size_name} tersisa {$available} pcs (Anda memilih {$qtyNeeded} pcs).");
                     }
